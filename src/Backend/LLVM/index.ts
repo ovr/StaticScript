@@ -11,7 +11,9 @@ import {
     CallExpression,
     SpreadElement,
     JSXNamespacedName,
-    FunctionDeclaration, Identifier, TSTypeAnnotation, ReturnStatement,
+    FunctionDeclaration,
+    Identifier,
+    ReturnStatement,
 } from '@babel/types';
 
 export function passBlockStatement(parent: BlockStatement, ctx: Context, builder: llvm.IRBuilder) {
@@ -97,6 +99,11 @@ function buildFromCallExpression(
 }
 
 function buildFromIdentifier(block: Identifier, ctx: Context, builder: llvm.IRBuilder): llvm.Value {
+    const variable = ctx.variables.get(block.name);
+    if (variable) {
+        return variable;
+    }
+
     return ctx.llvmModule.getFunction(block.name);
 }
 
@@ -124,6 +131,10 @@ export function passVariableDeclaration(block: VariableDeclaration, ctx: Context
 
     if (declaration.init) {
         const right = buildFromExpression(declaration.init, ctx, builder);
+
+        if (declaration.id.type === 'Identifier') {
+            ctx.variables.set(declaration.id.name, right);
+        }
 
         return;
     }
@@ -154,9 +165,14 @@ export function passStatement(stmt: Statement, ctx: Context, builder: llvm.IRBui
     }
 }
 
+class SymbolTable extends Map<string, llvm.Value> {
+
+}
+
 class Context {
     public llvmContext: llvm.LLVMContext;
     public llvmModule: llvm.Module;
+    public variables: SymbolTable = new SymbolTable();
 
     public constructor() {
         this.llvmContext = new llvm.LLVMContext();

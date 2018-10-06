@@ -2,13 +2,11 @@ import {parse} from '@babel/parser'
 
 const example = `
 {
-    function returnVoid(): void {
-        return;
-    }
+    const a = 1;
+    const b = 2;
+    const c = a + b;
 
-    returnVoid();
-
-    puts("Hello World!");
+    puts(c);
 }
 `;
 
