@@ -7,11 +7,26 @@ import {
     VariableDeclaration,
     BinaryExpression,
     Expression,
-    CallExpression, SpreadElement, JSXNamespacedName,
+    CallExpression,
+    SpreadElement,
+    JSXNamespacedName,
+    FunctionDeclaration, Identifier,
 } from '@babel/types';
 
 export function passBlockStatement(parent: BlockStatement, ctx: Context, builder: llvm.IRBuilder) {
     for (const stmt of parent.body) {
+        passStatement(stmt, ctx, builder);
+    }
+}
+
+export function passFunctionDeclaration(parent: FunctionDeclaration, ctx: Context, builder: llvm.IRBuilder) {
+    let fnType = llvm.FunctionType.get(llvm.Type.getVoidTy(ctx.llvmContext), false);
+    let fn = llvm.Function.create(fnType, llvm.LinkageTypes.ExternalLinkage, (<Identifier>parent.id).name, ctx.llvmModule);
+
+    let block = llvm.BasicBlock.create(ctx.llvmContext, 'Entry', fn);
+    let irBuilder = new llvm.IRBuilder(block);
+
+    for (const stmt of parent.body.body) {
         passStatement(stmt, ctx, builder);
     }
 }
@@ -107,6 +122,9 @@ export function passStatement(stmt: Statement, ctx: Context, builder: llvm.IRBui
             break;
         case "ExpressionStatement":
             buildFromExpression(stmt.expression, ctx, builder);
+            break;
+        case "FunctionDeclaration":
+            passFunctionDeclaration(stmt, ctx, builder);
             break;
         default:
             throw new Error(`Unsupported statement: "${stmt.type}"`);

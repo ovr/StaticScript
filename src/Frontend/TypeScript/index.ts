@@ -2,7 +2,11 @@ import {parse} from '@babel/parser'
 
 const example = `
 {
-    console.log('Hello world!');
+    function getText(): string {
+        return "Hello World";
+    }
+
+    console.log(getText());
 }
 `;
 
