@@ -7,13 +7,20 @@ import {
     VariableDeclaration,
     BinaryExpression,
     Expression,
-    CallExpression
+    CallExpression,
 } from '@babel/types';
 
 export function passBlockStatement(parent: BlockStatement, ctx: Context, builder: llvm.IRBuilder) {
     for (const stmt of parent.body) {
         passStatement(stmt, ctx, builder);
     }
+}
+
+export function buildFromStringValue(ctx: Context, value: string, builder: llvm.IRBuilder): llvm.Value {
+    return builder.createGlobalStringPtr(
+        value,
+        'tmp'
+    );
 }
 
 function buildFromNumberValue(ctx: Context, value: number, builder: llvm.IRBuilder): llvm.Value {
@@ -45,24 +52,26 @@ function buildFromCallExpression(
 ) {
     // llvm.Type.getVoidTy(ctx.llvmContext);
 
-    const callle = ctx.llvmModule.getFunction('puts');
-    if (!callle) {
-        throw new Error(
-            `Unknown fn: "putchar"`
-        );
-    }
-
-    return builder.createCall(
-        callle,
-        [],
-        'puts'
-    );
+    // const callle = ctx.llvmModule.getFunction('putchar');
+    // if (!callle) {
+    //     throw new Error(
+    //         `Unknown fn: "putchar"`
+    //     );
+    // }
+    //
+    // return builder.createCall(
+    //     callle,
+    //     [],
+    //     'putchar'
+    // );
 }
 
 function buildFromExpression(block: Expression, ctx: Context, builder: llvm.IRBuilder) {
     switch (block.type) {
         case 'NumericLiteral':
             return buildFromNumberValue(ctx, block.value, builder);
+        case 'StringLiteral':
+            return buildFromStringValue(ctx, block.value, builder);
         case 'BinaryExpression':
             return buildFromBinaryExpression(ctx, block, builder);
         case 'CallExpression':
@@ -85,6 +94,7 @@ export function passVariableDeclaration(block: VariableDeclaration, ctx: Context
 
     throw new Error('Unsupported variable declaration block');
 }
+
 
 export function passStatement(stmt: Statement, ctx: Context, builder: llvm.IRBuilder) {
     switch (stmt.type) {
