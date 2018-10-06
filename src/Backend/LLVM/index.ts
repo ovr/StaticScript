@@ -7,7 +7,7 @@ import {
     VariableDeclaration,
     BinaryExpression,
     Expression,
-    CallExpression,
+    CallExpression, SpreadElement, JSXNamespacedName,
 } from '@babel/types';
 
 export function passBlockStatement(parent: BlockStatement, ctx: Context, builder: llvm.IRBuilder) {
@@ -50,23 +50,25 @@ function buildFromCallExpression(
     expr: CallExpression,
     builder: llvm.IRBuilder
 ) {
-    // llvm.Type.getVoidTy(ctx.llvmContext);
+    const callle = ctx.llvmModule.getFunction('puts');
+    if (!callle) {
+        throw new Error(
+            `Unknown fn: "puts"`
+        );
+    }
 
-    // const callle = ctx.llvmModule.getFunction('putchar');
-    // if (!callle) {
-    //     throw new Error(
-    //         `Unknown fn: "putchar"`
-    //     );
-    // }
-    //
-    // return builder.createCall(
-    //     callle,
-    //     [],
-    //     'putchar'
-    // );
+    const args = expr.arguments.map((expr: Expression | SpreadElement | JSXNamespacedName) => {
+        return buildFromExpression(<any>expr, ctx, builder);
+    });
+
+    return builder.createCall(
+        callle,
+        args,
+        'putchar'
+    );
 }
 
-function buildFromExpression(block: Expression, ctx: Context, builder: llvm.IRBuilder) {
+function buildFromExpression(block: Expression, ctx: Context, builder: llvm.IRBuilder): llvm.Value {
     switch (block.type) {
         case 'NumericLiteral':
             return buildFromNumberValue(ctx, block.value, builder);
@@ -124,6 +126,11 @@ class Context {
 
 export function generateFromFile(file: File) {
     const ctx = new Context();
+
+    let putsFnType = llvm.FunctionType.get(llvm.Type.getInt32Ty(ctx.llvmContext), [
+        llvm.Type.getInt8Ty(ctx.llvmContext)
+    ], false);
+    ctx.llvmModule.getOrInsertFunction('puts', putsFnType);
 
     let mainFnType = llvm.FunctionType.get(llvm.Type.getInt32Ty(ctx.llvmContext), false);
     let mainFn = llvm.Function.create(mainFnType, llvm.LinkageTypes.ExternalLinkage, "main", ctx.llvmModule);
