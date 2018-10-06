@@ -79,10 +79,10 @@ function buildFromCallExpression(
     expr: CallExpression,
     builder: llvm.IRBuilder
 ) {
-    const callle = ctx.llvmModule.getFunction('puts');
+    const callle = buildFromExpression(expr.callee, ctx, builder);
     if (!callle) {
         throw new Error(
-            `Unknown fn: "puts"`
+            `We cannot prepare expression to call this function`
         );
     }
 
@@ -96,8 +96,14 @@ function buildFromCallExpression(
     );
 }
 
+function buildFromIdentifier(block: Identifier, ctx: Context, builder: llvm.IRBuilder): llvm.Value {
+    return ctx.llvmModule.getFunction(block.name);
+}
+
 function buildFromExpression(block: Expression, ctx: Context, builder: llvm.IRBuilder): llvm.Value {
     switch (block.type) {
+        case 'Identifier':
+            return buildFromIdentifier(block, ctx, builder);
         case 'NumericLiteral':
             return buildFromNumberValue(ctx, block.value, builder);
         case 'StringLiteral':
