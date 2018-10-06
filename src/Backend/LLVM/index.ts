@@ -1,6 +1,6 @@
 import * as llvm from "llvm-node";
 
-import {BlockStatement, File, Statement, VariableDeclaration} from '@babel/types';
+import {BlockStatement, File, Statement, VariableDeclaration, BinaryExpression, Expression} from '@babel/types';
 
 export function passBlockStatement(parent: BlockStatement, ctx: Context, builder: llvm.IRBuilder) {
     for (const stmt of parent.body) {
@@ -12,18 +12,44 @@ function buildFromNumberValue(ctx: Context, value: number, builder: llvm.IRBuild
     return llvm.ConstantInt.get(ctx.llvmContext, 0, 32, true);
 }
 
+function buildFromBinaryExpression(
+    ctx: Context,
+    expr: BinaryExpression,
+    builder: llvm.IRBuilder
+): llvm.Value {
+    switch (expr.operator) {
+        case '+':
+            const left = buildFromExpression(expr.left, ctx, builder);
+            const right = buildFromExpression(expr.right, ctx, builder);
+
+            return builder.createFAdd(left, right);
+        default:
+            throw new Error(
+                `Unsupported BinaryExpression.operator: "${expr.type}"`
+            );
+    }
+}
+
+function buildFromExpression(block: Expression, ctx: Context, builder: llvm.IRBuilder) {
+    switch (block.type) {
+        case 'NumericLiteral':
+            return buildFromNumberValue(ctx, block.value, builder);
+        case 'BinaryExpression':
+            return buildFromBinaryExpression(ctx, block, builder);
+        default:
+            throw new Error(
+                `Unsupported Expression.type: "${block.type}"`
+            );
+    }
+}
+
 export function passVariableDeclaration(block: VariableDeclaration, ctx: Context, builder: llvm.IRBuilder) {
     const declaration = block.declarations[0];
 
     if (declaration.init) {
-        switch (declaration.init.type) {
-            case 'NumericLiteral':
-                return buildFromNumberValue(ctx, declaration.init.value, builder);
-            default:
-                throw new Error(
-                    `Unsupported variable declaration.init type: "${declaration.init.type}"`
-                );
-        }
+        const right = buildFromExpression(declaration.init, ctx, builder);
+
+        return;
     }
 
     throw new Error('Unsupported variable declaration block');
