@@ -13,17 +13,20 @@ function buildFromNumberValue(ctx: Context, value: number, builder: llvm.IRBuild
 }
 
 export function passVariableDeclaration(block: VariableDeclaration, ctx: Context, builder: llvm.IRBuilder) {
-    buildFromNumberValue(ctx, 0, builder);
+    const declaration = block.declarations[0];
 
-    // const intType = llvm.Type.getInt32Ty(ctx.llvmContext);
-    //
-    // const globalVariable = new llvm.GlobalVariable(
-    //     ctx.llvmModule,
-    //     intType,
-    //     true,
-    //     llvm.LinkageTypes.InternalLinkage,
-    //     llvm.ConstantInt.get(ctx.llvmContext, 0)
-    // );
+    if (declaration.init) {
+        switch (declaration.init.type) {
+            case 'NumericLiteral':
+                return buildFromNumberValue(ctx, declaration.init.value, builder);
+            default:
+                throw new Error(
+                    `Unsupported variable declaration.init type: "${declaration.init.type}"`
+                );
+        }
+    }
+
+    throw new Error('Unsupported variable declaration block');
 }
 
 export function passStatement(stmt: Statement, ctx: Context, builder: llvm.IRBuilder) {
