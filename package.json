@@ -12,5 +12,8 @@
     "@babel/parser": "^7.1.2",
     "@babel/types": "^7.1.2",
     "typescript": "^3.1.1"
+  },
+  "dependencies": {
+    "llvm-node": "^2.0.8"
   }
 }
