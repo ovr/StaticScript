@@ -1,6 +1,14 @@
 import * as llvm from "llvm-node";
 
-import {BlockStatement, File, Statement, VariableDeclaration, BinaryExpression, Expression} from '@babel/types';
+import {
+    BlockStatement,
+    File,
+    Statement,
+    VariableDeclaration,
+    BinaryExpression,
+    Expression,
+    CallExpression
+} from '@babel/types';
 
 export function passBlockStatement(parent: BlockStatement, ctx: Context, builder: llvm.IRBuilder) {
     for (const stmt of parent.body) {
@@ -30,12 +38,35 @@ function buildFromBinaryExpression(
     }
 }
 
+function buildFromCallExpression(
+    ctx: Context,
+    expr: CallExpression,
+    builder: llvm.IRBuilder
+) {
+    // llvm.Type.getVoidTy(ctx.llvmContext);
+
+    const callle = ctx.llvmModule.getFunction('puts');
+    if (!callle) {
+        throw new Error(
+            `Unknown fn: "putchar"`
+        );
+    }
+
+    return builder.createCall(
+        callle,
+        [],
+        'puts'
+    );
+}
+
 function buildFromExpression(block: Expression, ctx: Context, builder: llvm.IRBuilder) {
     switch (block.type) {
         case 'NumericLiteral':
             return buildFromNumberValue(ctx, block.value, builder);
         case 'BinaryExpression':
             return buildFromBinaryExpression(ctx, block, builder);
+        case 'CallExpression':
+            return <any>buildFromCallExpression(ctx, block, builder);
         default:
             throw new Error(
                 `Unsupported Expression.type: "${block.type}"`
@@ -62,6 +93,9 @@ export function passStatement(stmt: Statement, ctx: Context, builder: llvm.IRBui
             break;
         case "VariableDeclaration":
             passVariableDeclaration(stmt, ctx, builder);
+            break;
+        case "ExpressionStatement":
+            buildFromExpression(stmt.expression, ctx, builder);
             break;
         default:
             throw new Error(`Unsupported statement: "${stmt.type}"`);

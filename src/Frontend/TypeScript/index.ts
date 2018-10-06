@@ -3,6 +3,7 @@ import {parse} from '@babel/parser'
 const example = `
 {
     const a = 1 + 5;
+    console.log(5);
 }
 `;
 
