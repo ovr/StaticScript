@@ -64,7 +64,6 @@ function buildFromCallExpression(
     return builder.createCall(
         callle,
         args,
-        'putchar'
     );
 }
 
@@ -128,11 +127,11 @@ export function generateFromFile(file: File) {
     const ctx = new Context();
 
     let putsFnType = llvm.FunctionType.get(llvm.Type.getInt32Ty(ctx.llvmContext), [
-        llvm.Type.getInt8Ty(ctx.llvmContext)
+        llvm.Type.getInt8PtrTy(ctx.llvmContext)
     ], false);
     ctx.llvmModule.getOrInsertFunction('puts', putsFnType);
 
-    let mainFnType = llvm.FunctionType.get(llvm.Type.getInt32Ty(ctx.llvmContext), false);
+    let mainFnType = llvm.FunctionType.get(llvm.Type.getVoidTy(ctx.llvmContext), false);
     let mainFn = llvm.Function.create(mainFnType, llvm.LinkageTypes.ExternalLinkage, "main", ctx.llvmModule);
 
     let block = llvm.BasicBlock.create(ctx.llvmContext, "Entry", mainFn);
@@ -141,6 +140,8 @@ export function generateFromFile(file: File) {
     for (const node of file.program.body) {
         passStatement(node, ctx, irBuilder);
     }
+
+    irBuilder.createRetVoid();
 
     const ll = ctx.llvmModule.print();
     console.log(ll);

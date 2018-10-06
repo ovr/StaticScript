@@ -8,4 +8,4 @@ const ast = parseTypeScript();
 
 const ir = generateFromFile(ast);
 
-console.log(ir);
+// console.log(ir);
