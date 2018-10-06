@@ -1,3 +1,4 @@
+import * as assert from 'assert';
 import * as llvm from "llvm-node";
 
 import {
@@ -10,7 +11,7 @@ import {
     CallExpression,
     SpreadElement,
     JSXNamespacedName,
-    FunctionDeclaration, Identifier,
+    FunctionDeclaration, Identifier, TSTypeAnnotation, ReturnStatement,
 } from '@babel/types';
 
 export function passBlockStatement(parent: BlockStatement, ctx: Context, builder: llvm.IRBuilder) {
@@ -19,7 +20,20 @@ export function passBlockStatement(parent: BlockStatement, ctx: Context, builder
     }
 }
 
+export function passReturnStatement(parent: ReturnStatement, ctx: Context, builder: llvm.IRBuilder) {
+    if (parent.argument === null) {
+        return builder.createRetVoid();
+    }
+
+    throw new Error(
+        `Unsupported ReturnStatement, only return without value is supported`
+    );
+}
+
 export function passFunctionDeclaration(parent: FunctionDeclaration, ctx: Context, builder: llvm.IRBuilder) {
+    assert.ok(parent.id !== null, 'Function must be declared with name');
+    assert.ok(parent.returnType, 'Function must be declared with return type');
+
     let fnType = llvm.FunctionType.get(llvm.Type.getVoidTy(ctx.llvmContext), false);
     let fn = llvm.Function.create(fnType, llvm.LinkageTypes.ExternalLinkage, (<Identifier>parent.id).name, ctx.llvmModule);
 
@@ -125,6 +139,9 @@ export function passStatement(stmt: Statement, ctx: Context, builder: llvm.IRBui
             break;
         case "FunctionDeclaration":
             passFunctionDeclaration(stmt, ctx, builder);
+            break;
+        case "ReturnStatement":
+            passReturnStatement(stmt, ctx, builder);
             break;
         default:
             throw new Error(`Unsupported statement: "${stmt.type}"`);
