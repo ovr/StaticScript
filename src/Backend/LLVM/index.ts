@@ -27,6 +27,12 @@ export function passReturnStatement(parent: ReturnStatement, ctx: Context, build
         return builder.createRetVoid();
     }
 
+    if (parent.argument.type === 'Identifier') {
+        return builder.createRet(
+            buildFromIdentifier(parent.argument, ctx, builder)
+        );
+    }
+
     throw new Error(
         `Unsupported ReturnStatement, only return without value is supported`
     );
@@ -34,9 +40,30 @@ export function passReturnStatement(parent: ReturnStatement, ctx: Context, build
 
 export function passFunctionDeclaration(parent: FunctionDeclaration, ctx: Context, builder: llvm.IRBuilder) {
     assert.ok(parent.id !== null, 'Function must be declared with name');
-    assert.ok(parent.returnType, 'Function must be declared with return type');
 
-    let fnType = llvm.FunctionType.get(llvm.Type.getVoidTy(ctx.llvmContext), false);
+    if (!parent.returnType) {
+        throw Error('Function must be declared with return type');
+    }
+
+    if (parent.returnType.type !== 'TSTypeAnnotation') {
+        throw Error(
+            `Function must be declared with TypeAnnotation return type, unexpected: "${parent.returnType.type}"`
+        );
+    }
+
+    let returnType = llvm.Type.getVoidTy(ctx.llvmContext);
+
+    switch (parent.returnType.typeAnnotation.type) {
+        case 'TSNumberKeyword':
+            returnType = llvm.Type.getInt32Ty(ctx.llvmContext);
+            break;
+        default:
+            throw Error(
+                `Function declared with unsupported return type, unexpected "${parent.returnType.typeAnnotation.type}"`
+            );
+    }
+
+    let fnType = llvm.FunctionType.get(returnType, false);
     let fn = llvm.Function.create(fnType, llvm.LinkageTypes.ExternalLinkage, (<Identifier>parent.id).name, ctx.llvmModule);
 
     let block = llvm.BasicBlock.create(ctx.llvmContext, 'Entry', fn);

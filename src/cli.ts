@@ -18,3 +18,4 @@ const llvmModule = generateModuleFromFile(ast);
 llvm.verifyModule(llvmModule);
 
 console.log(llvmModule.print());
+

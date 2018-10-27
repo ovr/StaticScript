@@ -2,11 +2,15 @@ import {parse} from '@babel/parser'
 
 const example = `
 {
-    const a = 1;
-    const b = 2;
-    const c = a + b;
+    function doMath(): number {
+        const a = 1;
+        const b = 2;
+        const c = a + b;
+        
+        return c;
+    }
 
-    puts(c);
+    doMath();
 }
 `;
 
