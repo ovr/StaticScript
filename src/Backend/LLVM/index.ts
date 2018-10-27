@@ -55,7 +55,7 @@ export function buildFromStringValue(ctx: Context, value: string, builder: llvm.
 }
 
 function buildFromNumberValue(ctx: Context, value: number, builder: llvm.IRBuilder): llvm.Value {
-    return llvm.ConstantInt.get(ctx.llvmContext, 0, 32, true);
+    return llvm.ConstantInt.get(ctx.llvmContext, value, 32, true);
 }
 
 function buildFromBinaryExpression(
