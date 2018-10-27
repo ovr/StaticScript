@@ -43,7 +43,7 @@ export function passFunctionDeclaration(parent: FunctionDeclaration, ctx: Contex
     let irBuilder = new llvm.IRBuilder(block);
 
     for (const stmt of parent.body.body) {
-        passStatement(stmt, ctx, builder);
+        passStatement(stmt, ctx, irBuilder);
     }
 }
 
