@@ -180,7 +180,7 @@ class Context {
     }
 }
 
-export function generateFromFile(file: File) {
+export function generateModuleFromFile(file: File): llvm.Module {
     const ctx = new Context();
 
     let putsFnType = llvm.FunctionType.get(llvm.Type.getInt32Ty(ctx.llvmContext), [
@@ -200,6 +200,5 @@ export function generateFromFile(file: File) {
 
     irBuilder.createRetVoid();
 
-    const ll = ctx.llvmModule.print();
-    console.log(ll);
+    return ctx.llvmModule;
 }
