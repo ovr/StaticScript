@@ -33,8 +33,14 @@ export function passReturnStatement(parent: ReturnStatement, ctx: Context, build
         );
     }
 
+    if (parent.argument.type === 'BinaryExpression') {
+        return builder.createRet(
+            buildFromBinaryExpression(ctx, parent.argument, builder)
+        );
+    }
+
     throw new Error(
-        `Unsupported ReturnStatement, only return without value is supported`
+        `Unsupported ReturnStatement, unexpected: "${parent.argument.type}"`
     );
 }
 
@@ -55,7 +61,7 @@ export function passFunctionDeclaration(parent: FunctionDeclaration, ctx: Contex
 
     switch (parent.returnType.typeAnnotation.type) {
         case 'TSNumberKeyword':
-            returnType = llvm.Type.getInt32Ty(ctx.llvmContext);
+            returnType = llvm.Type.getInt32PtrTy(ctx.llvmContext);
             break;
         default:
             throw Error(
@@ -157,10 +163,22 @@ export function passVariableDeclaration(block: VariableDeclaration, ctx: Context
     const declaration = block.declarations[0];
 
     if (declaration.init) {
-        const right = buildFromExpression(declaration.init, ctx, builder);
+        const defaultValue = buildFromExpression(declaration.init, ctx, builder);
 
         if (declaration.id.type === 'Identifier') {
-            ctx.variables.set(declaration.id.name, right);
+            const allocate = builder.createAlloca(
+                llvm.Type.getInt32Ty(ctx.llvmContext),
+                undefined,
+                declaration.id.name
+            );
+
+            builder.createStore(
+                defaultValue,
+                allocate,
+                false
+            );
+
+            ctx.variables.set(declaration.id.name, allocate);
         }
 
         return;
