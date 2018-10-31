@@ -15,7 +15,7 @@ llvm.initializeAllAsmPrinters();
 
 const llvmModule = generateModuleFromFile(ast);
 
-// llvm.verifyModule(llvmModule);
+llvm.verifyModule(llvmModule);
 
 console.log(llvmModule.print());
 

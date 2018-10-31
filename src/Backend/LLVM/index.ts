@@ -98,7 +98,7 @@ function buildFromBinaryExpression(
     builder: llvm.IRBuilder
 ): llvm.Value {
     switch (expr.operator) {
-        case '+':
+        case '+': {
             const left = buildFromExpression(expr.left, ctx, builder);
             const right = buildFromExpression(expr.right, ctx, builder);
 
@@ -106,6 +106,34 @@ function buildFromBinaryExpression(
                 loadIfNeeded(left, builder, ctx),
                 loadIfNeeded(right, builder, ctx)
             );
+        }
+        case '-': {
+            const left = buildFromExpression(expr.left, ctx, builder);
+            const right = buildFromExpression(expr.right, ctx, builder);
+
+            return builder.createFSub(
+                loadIfNeeded(left, builder, ctx),
+                loadIfNeeded(right, builder, ctx)
+            );
+        }
+        case '*': {
+            const left = buildFromExpression(expr.left, ctx, builder);
+            const right = buildFromExpression(expr.right, ctx, builder);
+
+            return builder.createFMul(
+                loadIfNeeded(left, builder, ctx),
+                loadIfNeeded(right, builder, ctx)
+            );
+        }
+        case '/': {
+            const left = buildFromExpression(expr.left, ctx, builder);
+            const right = buildFromExpression(expr.right, ctx, builder);
+
+            return builder.createFDiv(
+                loadIfNeeded(left, builder, ctx),
+                loadIfNeeded(right, builder, ctx)
+            );
+        }
         default:
             throw new Error(
                 `Unsupported BinaryExpression.operator: "${expr.type}"`
