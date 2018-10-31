@@ -3,10 +3,10 @@ import {parse} from '@babel/parser'
 const example = `
 {
     function doMath(): number {
-        const a = 1;
-        const b = 2;
+        const a = 1.2;
+        const b = 2.5;
 
-        return a;
+        return a + b;
     }
 
     doMath();

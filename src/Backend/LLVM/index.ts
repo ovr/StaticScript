@@ -15,6 +15,7 @@ import {
     Identifier,
     ReturnStatement,
 } from '@babel/types';
+import {IRBuilder} from "llvm-node";
 
 export function passBlockStatement(parent: BlockStatement, ctx: Context, builder: llvm.IRBuilder) {
     for (const stmt of parent.body) {
@@ -61,7 +62,7 @@ export function passFunctionDeclaration(parent: FunctionDeclaration, ctx: Contex
 
     switch (parent.returnType.typeAnnotation.type) {
         case 'TSNumberKeyword':
-            returnType = llvm.Type.getInt32PtrTy(ctx.llvmContext);
+            returnType = llvm.Type.getDoubleTy(ctx.llvmContext);
             break;
         default:
             throw Error(
@@ -88,7 +89,7 @@ export function buildFromStringValue(ctx: Context, value: string, builder: llvm.
 }
 
 function buildFromNumberValue(ctx: Context, value: number, builder: llvm.IRBuilder): llvm.Value {
-    return llvm.ConstantInt.get(ctx.llvmContext, value, 32, true);
+    return llvm.ConstantFP.get(ctx.llvmContext, value);
 }
 
 function buildFromBinaryExpression(
@@ -101,7 +102,10 @@ function buildFromBinaryExpression(
             const left = buildFromExpression(expr.left, ctx, builder);
             const right = buildFromExpression(expr.right, ctx, builder);
 
-            return builder.createFAdd(left, right);
+            return builder.createFAdd(
+                loadIfNeeded(left, builder, ctx),
+                loadIfNeeded(right, builder, ctx)
+            );
         default:
             throw new Error(
                 `Unsupported BinaryExpression.operator: "${expr.type}"`
@@ -167,7 +171,7 @@ export function passVariableDeclaration(block: VariableDeclaration, ctx: Context
 
         if (declaration.id.type === 'Identifier') {
             const allocate = builder.createAlloca(
-                llvm.Type.getInt32Ty(ctx.llvmContext),
+                llvm.Type.getDoubleTy(ctx.llvmContext),
                 undefined,
                 declaration.id.name
             );
@@ -208,6 +212,14 @@ export function passStatement(stmt: Statement, ctx: Context, builder: llvm.IRBui
         default:
             throw new Error(`Unsupported statement: "${stmt.type}"`);
     }
+}
+
+function loadIfNeeded(value: llvm.Value, builder: IRBuilder, ctx: Context): llvm.Value {
+    if (value.type.isPointerTy()) {
+        return builder.createLoad(value);
+    }
+
+    return value;
 }
 
 class SymbolTable extends Map<string, llvm.Value> {
