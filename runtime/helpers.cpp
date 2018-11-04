@@ -2,10 +2,12 @@
 #include <sstream>
 #include <iostream>
 
+#include "helpers.h"
+
 __attribute__ ((visibility ("default"))) const char* number2string(double number) {
-    std::stringstream s;
+    char* result = new char[100];
 
-    s << number;
+    sprintf(result, "%f", number);
 
-    return s.str().c_str();
+    return result;
 }
