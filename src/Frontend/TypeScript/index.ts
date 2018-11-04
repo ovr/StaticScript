@@ -9,7 +9,8 @@ const example = `
         return ((a + b) * 50) / 10;
     }
 
-    doMath();
+    puts("hello");
+    puts(_Z13number2stringd(doMath()));
 }
 `;
 

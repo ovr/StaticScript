@@ -149,7 +149,7 @@ function buildFromCallExpression(
     const callle = buildFromExpression(expr.callee, ctx, builder);
     if (!callle) {
         throw new Error(
-            `We cannot prepare expression to call this function`
+            `We cannot prepare expression to call this function, ${expr.callee.type}`
         );
     }
 
@@ -272,6 +272,12 @@ export function generateModuleFromFile(file: File): llvm.Module {
         llvm.Type.getInt8PtrTy(ctx.llvmContext)
     ], false);
     ctx.llvmModule.getOrInsertFunction('puts', putsFnType);
+
+    let number2stringFnType = llvm.FunctionType.get(llvm.Type.getInt8PtrTy(ctx.llvmContext), [
+        llvm.Type.getDoubleTy(ctx.llvmContext)
+    ], false);
+    llvm.Function.create(number2stringFnType, llvm.LinkageTypes.ExternalLinkage, "_Z13number2stringd", ctx.llvmModule);
+    // ctx.llvmModule.getOrInsertFunction();
 
     let mainFnType = llvm.FunctionType.get(llvm.Type.getVoidTy(ctx.llvmContext), false);
     let mainFn = llvm.Function.create(mainFnType, llvm.LinkageTypes.ExternalLinkage, "main", ctx.llvmModule);
