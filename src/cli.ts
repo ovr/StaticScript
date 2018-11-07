@@ -1,9 +1,18 @@
 
+import * as ts from "typescript";
 import * as llvm from 'llvm-node';
-import {parseTypeScript} from './Frontend/TypeScript';
 import {generateModuleFromFile} from './Backend/LLVM';
 
-const ast = parseTypeScript();
+const options = {
+    lib: [],
+    types: []
+};
+
+const files = [
+    'sandbox/do-simple-math.ts'
+];
+const host = ts.createCompilerHost(options);
+const program = ts.createProgram(files, options, host);
 
 // console.log(ast);
 
@@ -13,7 +22,7 @@ llvm.initializeAllTargetMCs();
 llvm.initializeAllAsmParsers();
 llvm.initializeAllAsmPrinters();
 
-const llvmModule = generateModuleFromFile(ast);
+const llvmModule = generateModuleFromFile(program);
 
 llvm.verifyModule(llvmModule);
 
