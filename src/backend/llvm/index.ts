@@ -324,7 +324,11 @@ export function generateModuleFromProgram(program: ts.Program): llvm.Module {
     llvm.Function.create(
         number2stringFnType,
         llvm.LinkageTypes.ExternalLinkage,
-        CPPMangler.getFunctionName("number2string", <any>[]),
+        CPPMangler.getFunctionName("number2string", <any>[
+            {
+                type: { kind: ts.SyntaxKind.NumberKeyword }
+            }
+        ]),
         ctx.llvmModule
     );
 
