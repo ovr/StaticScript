@@ -1,14 +1,7 @@
 
 import * as ts from "typescript";
 import * as llvm from 'llvm-node';
-import {IRBuilder} from "llvm-node";
 
-// export function passBlockStatement(parent: BlockStatement, ctx: Context, builder: llvm.IRBuilder) {
-//     for (const stmt of parent.body) {
-//         passStatement(stmt, ctx, builder);
-//     }
-// }
-//
 export function passReturnStatement(parent: ts.ReturnStatement, ctx: Context, builder: llvm.IRBuilder) {
     if (!parent.expression) {
         return builder.createRetVoid();
@@ -245,7 +238,7 @@ export function passStatement(stmt: ts.Statement, ctx: Context, builder: llvm.IR
     }
 }
 
-function loadIfNeeded(value: llvm.Value, builder: IRBuilder, ctx: Context): llvm.Value {
+function loadIfNeeded(value: llvm.Value, builder: llvm.IRBuilder, ctx: Context): llvm.Value {
     if (value.type.isPointerTy()) {
         return builder.createLoad(value);
     }
@@ -268,13 +261,13 @@ class Context {
     }
 }
 
-function passBlockStatement(node: ts.Block, ctx: Context, builder: IRBuilder) {
+function passBlockStatement(node: ts.Block, ctx: Context, builder: llvm.IRBuilder) {
     for (const stmt of node.statements) {
         passStatement(stmt, ctx, builder);
     }
 }
 
-function passNode(node: ts.Node, ctx: Context, builder: IRBuilder) {
+function passNode(node: ts.Node, ctx: Context, builder: llvm.IRBuilder) {
     switch (node.kind) {
         case ts.SyntaxKind.Block:
             passBlockStatement(<any>node, ctx, builder);
