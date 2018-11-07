@@ -1,5 +1,4 @@
 
-import * as assert from 'assert';
 import * as ts from "typescript";
 import * as llvm from 'llvm-node';
 import {IRBuilder} from "llvm-node";
@@ -15,18 +14,17 @@ export function passReturnStatement(parent: ts.ReturnStatement, ctx: Context, bu
         return builder.createRetVoid();
     }
 
-    //
-    // if (parent.argument.type === 'Identifier') {
-    //     return builder.createRet(
-    //         buildFromIdentifier(parent.argument, ctx, builder)
-    //     );
-    // }
-    //
-    // if (parent.argument.type === 'BinaryExpression') {
-    //     return builder.createRet(
-    //         buildFromBinaryExpression(ctx, parent.argument, builder)
-    //     );
-    // }
+    if (parent.expression.kind === ts.SyntaxKind.Identifier) {
+        return builder.createRet(
+            buildFromIdentifier(<any>parent.expression, ctx, builder)
+        );
+    }
+
+    if (parent.expression.kind === ts.SyntaxKind.BinaryExpression) {
+        return builder.createRet(
+            buildFromBinaryExpression(<any>parent.expression, ctx, builder)
+        );
+    }
 
     throw new Error(
         `Unsupported ReturnStatement, unexpected: "${parent.expression.kind}"`
@@ -67,157 +65,175 @@ export function passFunctionDeclaration(parent: ts.FunctionDeclaration, ctx: Con
     }
 }
 
-//
-// export function buildFromStringValue(ctx: Context, value: string, builder: llvm.IRBuilder): llvm.Value {
-//     return builder.createGlobalStringPtr(
-//         value,
-//         'tmp'
-//     );
-// }
-//
-// function buildFromNumberValue(ctx: Context, value: number, builder: llvm.IRBuilder): llvm.Value {
-//     return llvm.ConstantFP.get(ctx.llvmContext, value);
-// }
-//
-// function buildFromBinaryExpression(
-//     ctx: Context,
-//     expr: BinaryExpression,
-//     builder: llvm.IRBuilder
-// ): llvm.Value {
-//     switch (expr.operator) {
-//         case '+': {
-//             const left = buildFromExpression(expr.left, ctx, builder);
-//             const right = buildFromExpression(expr.right, ctx, builder);
-//
-//             return builder.createFAdd(
-//                 loadIfNeeded(left, builder, ctx),
-//                 loadIfNeeded(right, builder, ctx)
-//             );
-//         }
-//         case '-': {
-//             const left = buildFromExpression(expr.left, ctx, builder);
-//             const right = buildFromExpression(expr.right, ctx, builder);
-//
-//             return builder.createFSub(
-//                 loadIfNeeded(left, builder, ctx),
-//                 loadIfNeeded(right, builder, ctx)
-//             );
-//         }
-//         case '*': {
-//             const left = buildFromExpression(expr.left, ctx, builder);
-//             const right = buildFromExpression(expr.right, ctx, builder);
-//
-//             return builder.createFMul(
-//                 loadIfNeeded(left, builder, ctx),
-//                 loadIfNeeded(right, builder, ctx)
-//             );
-//         }
-//         case '/': {
-//             const left = buildFromExpression(expr.left, ctx, builder);
-//             const right = buildFromExpression(expr.right, ctx, builder);
-//
-//             return builder.createFDiv(
-//                 loadIfNeeded(left, builder, ctx),
-//                 loadIfNeeded(right, builder, ctx)
-//             );
-//         }
-//         default:
-//             throw new Error(
-//                 `Unsupported BinaryExpression.operator: "${expr.type}"`
-//             );
-//     }
-// }
-//
-// function buildFromCallExpression(
-//     ctx: Context,
-//     expr: CallExpression,
-//     builder: llvm.IRBuilder
-// ) {
-//     const callle = buildFromExpression(expr.callee, ctx, builder);
-//     if (!callle) {
-//         throw new Error(
-//             `We cannot prepare expression to call this function, ${expr.callee.type}`
-//         );
-//     }
-//
-//     const args = expr.arguments.map((expr: Expression | SpreadElement | JSXNamespacedName) => {
-//         return buildFromExpression(<any>expr, ctx, builder);
-//     });
-//
-//     return builder.createCall(
-//         callle,
-//         args,
-//     );
-// }
-//
-// function buildFromIdentifier(block: Identifier, ctx: Context, builder: llvm.IRBuilder): llvm.Value {
-//     const variable = ctx.variables.get(block.name);
-//     if (variable) {
-//         return variable;
-//     }
-//
-//     return ctx.llvmModule.getFunction(block.name);
-// }
-//
-// function buildFromExpression(block: Expression, ctx: Context, builder: llvm.IRBuilder): llvm.Value {
-//     switch (block.type) {
-//         case 'Identifier':
-//             return buildFromIdentifier(block, ctx, builder);
-//         case 'NumericLiteral':
-//             return buildFromNumberValue(ctx, block.value, builder);
-//         case 'StringLiteral':
-//             return buildFromStringValue(ctx, block.value, builder);
-//         case 'BinaryExpression':
-//             return buildFromBinaryExpression(ctx, block, builder);
-//         case 'CallExpression':
-//             return <any>buildFromCallExpression(ctx, block, builder);
-//         default:
-//             throw new Error(
-//                 `Unsupported Expression.type: "${block.type}"`
-//             );
-//     }
-// }
-//
-// export function passVariableDeclaration(block: VariableDeclaration, ctx: Context, builder: llvm.IRBuilder) {
-//     const declaration = block.declarations[0];
-//
-//     if (declaration.init) {
-//         const defaultValue = buildFromExpression(declaration.init, ctx, builder);
-//
-//         if (declaration.id.type === 'Identifier') {
-//             const allocate = builder.createAlloca(
-//                 llvm.Type.getDoubleTy(ctx.llvmContext),
-//                 undefined,
-//                 declaration.id.name
-//             );
-//
-//             builder.createStore(
-//                 defaultValue,
-//                 allocate,
-//                 false
-//             );
-//
-//             ctx.variables.set(declaration.id.name, allocate);
-//         }
-//
-//         return;
-//     }
-//
-//     throw new Error('Unsupported variable declaration block');
-// }
-//
-//
+export function buildFromStringValue(node: ts.StringLiteral, ctx: Context, builder: llvm.IRBuilder): llvm.Value {
+    return builder.createGlobalStringPtr(
+        node.text,
+        'tmp'
+    );
+}
+
+function buildFromNumberValue(value: ts.NumericLiteral, ctx: Context, builder: llvm.IRBuilder): llvm.Value {
+    return llvm.ConstantFP.get(ctx.llvmContext, parseFloat(value.text));
+}
+
+function buildFromBinaryExpression(
+    expr: ts.BinaryExpression,
+    ctx: Context,
+    builder: llvm.IRBuilder
+): llvm.Value {
+    switch (expr.operatorToken.kind) {
+        case ts.SyntaxKind.PlusToken: {
+            const left = buildFromExpression(expr.left, ctx, builder);
+            const right = buildFromExpression(expr.right, ctx, builder);
+
+            return builder.createFAdd(
+                loadIfNeeded(left, builder, ctx),
+                loadIfNeeded(right, builder, ctx)
+            );
+        }
+        case ts.SyntaxKind.MinusToken: {
+            const left = buildFromExpression(expr.left, ctx, builder);
+            const right = buildFromExpression(expr.right, ctx, builder);
+
+            return builder.createFSub(
+                loadIfNeeded(left, builder, ctx),
+                loadIfNeeded(right, builder, ctx)
+            );
+        }
+        case ts.SyntaxKind.AsteriskToken: {
+            const left = buildFromExpression(expr.left, ctx, builder);
+            const right = buildFromExpression(expr.right, ctx, builder);
+
+            return builder.createFMul(
+                loadIfNeeded(left, builder, ctx),
+                loadIfNeeded(right, builder, ctx)
+            );
+        }
+        case ts.SyntaxKind.SlashToken: {
+            const left = buildFromExpression(expr.left, ctx, builder);
+            const right = buildFromExpression(expr.right, ctx, builder);
+
+            return builder.createFDiv(
+                loadIfNeeded(left, builder, ctx),
+                loadIfNeeded(right, builder, ctx)
+            );
+        }
+        default:
+            throw new Error(
+                `Unsupported BinaryExpression.operator: "${expr.kind}"`
+            );
+    }
+}
+
+function buildFromCallExpression(
+    expr: ts.CallExpression,
+    ctx: Context,
+    builder: llvm.IRBuilder
+) {
+    const callle = buildFromExpression(expr.expression, ctx, builder);
+    if (!callle) {
+        throw new Error(
+            `We cannot prepare expression to call this function, ${expr.expression}`
+        );
+    }
+
+    const args = expr.arguments.map((expr) => {
+        return buildFromExpression(<any>expr, ctx, builder);
+    });
+
+    return builder.createCall(
+        callle,
+        args,
+    );
+}
+
+function buildFromIdentifier(block: ts.Identifier, ctx: Context, builder: llvm.IRBuilder): llvm.Value {
+    const variable = ctx.variables.get(<string>block.escapedText);
+    if (variable) {
+        return variable;
+    }
+
+    const fn = ctx.llvmModule.getFunction(<string>block.escapedText);
+    if (fn) {
+        return fn;
+    }
+
+    throw new Error(
+        `Unknown Identifier: "${<string>block.escapedText}"`
+    );
+}
+
+
+function buildFromExpression(block: ts.Expression, ctx: Context, builder: llvm.IRBuilder): llvm.Value {
+    switch (block.kind) {
+        case ts.SyntaxKind.Identifier:
+            return buildFromIdentifier(<any>block, ctx, builder);
+        case ts.SyntaxKind.NumericLiteral:
+            return buildFromNumberValue(<any>block, ctx, builder);
+        case ts.SyntaxKind.StringLiteral:
+            return buildFromStringValue(<any>block, ctx, builder);
+        case ts.SyntaxKind.BinaryExpression:
+            return buildFromBinaryExpression(<any>block, ctx, builder);
+        case ts.SyntaxKind.CallExpression:
+            return <any>buildFromCallExpression(<any>block, ctx, builder);
+        case ts.SyntaxKind.ExpressionStatement:
+            return <any>buildFromExpression((<any>block).expression, ctx, builder);
+        case ts.SyntaxKind.ParenthesizedExpression: {
+            return buildFromExpression((<ts.ParenthesizedExpression>block).expression, ctx, builder);
+        }
+        default:
+            throw new Error(
+                `Unsupported Expression.type: "${block.kind}"`
+            );
+    }
+}
+
+export function passVariableDeclaration(block: ts.VariableDeclaration, ctx: Context, builder: llvm.IRBuilder) {
+    if (block.initializer) {
+        const defaultValue = buildFromExpression(block.initializer, ctx, builder);
+
+        if (block.name.kind == ts.SyntaxKind.Identifier) {
+            const allocate = builder.createAlloca(
+                llvm.Type.getDoubleTy(ctx.llvmContext),
+                undefined,
+                <string>block.name.escapedText
+            );
+
+            builder.createStore(
+                defaultValue,
+                allocate,
+                false
+            );
+
+            ctx.variables.set(<string>block.name.escapedText, allocate);
+        }
+
+        return;
+    }
+
+    throw new Error('Unsupported variable declaration block');
+}
+
+export function passVariableStatement(block: ts.VariableStatement, ctx: Context, builder: llvm.IRBuilder) {
+    for (const declaration of block.declarationList.declarations) {
+        passStatement(<any>declaration, ctx, builder);
+    }
+}
+
 export function passStatement(stmt: ts.Statement, ctx: Context, builder: llvm.IRBuilder) {
     switch (stmt.kind) {
         case ts.SyntaxKind.Block:
             passBlockStatement(<any>stmt, ctx, builder);
             break;
-        // case ts.SyntaxKind.VariableDeclaration:
-        //     passVariableDeclaration(stmt, ctx, builder);
-        //     break;
-        // case ts.SyntaxKind.ExpressionStatement:
-        //     buildFromExpression(stmt.expression, ctx, builder);
-        //     break;
+        case ts.SyntaxKind.VariableDeclaration:
+            passVariableDeclaration(<any>stmt, ctx, builder);
+            break;
+        case ts.SyntaxKind.VariableStatement:
+            passVariableStatement(<any>stmt, ctx, builder);
+            break;
+        case ts.SyntaxKind.ExpressionStatement:
+            buildFromExpression(<any>stmt, ctx, builder);
+            break;
         case ts.SyntaxKind.FunctionDeclaration:
             passFunctionDeclaration(<any>stmt, ctx, builder);
             break;
@@ -225,7 +241,7 @@ export function passStatement(stmt: ts.Statement, ctx: Context, builder: llvm.IR
             passReturnStatement(<any>stmt, ctx, builder);
             break;
         default:
-            // throw new Error(`Unsupported statement: "${stmt.kind}"`);
+            throw new Error(`Unsupported statement: "${stmt.kind}"`);
     }
 }
 
