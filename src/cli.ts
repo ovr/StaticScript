@@ -1,10 +1,13 @@
 
-import * as ts from "typescript";
+import * as ts from 'typescript';
+import * as path from 'path';
 import * as llvm from 'llvm-node';
 import {generateModuleFromFile} from './Backend/LLVM';
 
 const options = {
-    lib: [],
+    lib: [
+        path.join(__dirname, '..', 'runtime', 'lib.runtime.d.ts')
+    ],
     types: []
 };
 
