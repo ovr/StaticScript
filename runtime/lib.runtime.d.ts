@@ -17,4 +17,4 @@ interface Array<T = any> {}
 
 declare function puts(str: string): void;
 
-declare function _Z13number2stringd(value: number): string;
+declare function number2string(value: number): string;

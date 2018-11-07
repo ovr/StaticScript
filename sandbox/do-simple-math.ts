@@ -8,5 +8,5 @@
     }
 
     puts("hello");
-    puts(_Z13number2stringd(doMath()));
+    puts(number2string(doMath()));
 }

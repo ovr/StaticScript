@@ -1,6 +1,7 @@
 
 import * as ts from "typescript";
 import * as llvm from 'llvm-node';
+import {CPPMangler} from "./cpp.mangler";
 
 export function passReturnStatement(parent: ts.ReturnStatement, ctx: Context, builder: llvm.IRBuilder) {
     if (!parent.expression) {
@@ -140,19 +141,41 @@ function buildFromCallExpression(
     );
 }
 
-function buildFromIdentifier(block: ts.Identifier, ctx: Context, builder: llvm.IRBuilder): llvm.Value {
-    const variable = ctx.variables.get(<string>block.escapedText);
+function buildFromIdentifier(identifier: ts.Identifier, ctx: Context, builder: llvm.IRBuilder): llvm.Value {
+    const variable = ctx.variables.get(<string>identifier.escapedText);
     if (variable) {
         return variable;
     }
 
-    const fn = ctx.llvmModule.getFunction(<string>block.escapedText);
+    const fn = ctx.llvmModule.getFunction(<string>identifier.escapedText);
     if (fn) {
         return fn;
     }
 
+    const symbol = ctx.typeChecker.getSymbolAtLocation(identifier);
+    if (symbol && symbol.declarations.length > 0) {
+        if (symbol.declarations.length > 1) {
+            throw new Error(
+                `Multiple declarations are not supported`
+            );
+        }
+
+        const symbolDeclaration = <ts.FunctionDeclaration>symbol.declarations[0];
+        if (symbolDeclaration.name) {
+            const mangledFunctionName = CPPMangler.getFunctionName(
+                <string>symbolDeclaration.name.escapedText,
+                symbolDeclaration.parameters
+            );
+
+            const fn = ctx.llvmModule.getFunction(mangledFunctionName);
+            if (fn) {
+                return fn;
+            }
+        }
+    }
+
     throw new Error(
-        `Unknown Identifier: "${<string>block.escapedText}"`
+        `Unknown Identifier: "${<string>identifier.escapedText}"`
     );
 }
 
@@ -251,11 +274,13 @@ class SymbolTable extends Map<string, llvm.Value> {
 }
 
 class Context {
+    public typeChecker: ts.TypeChecker;
     public llvmContext: llvm.LLVMContext;
     public llvmModule: llvm.Module;
     public variables: SymbolTable = new SymbolTable();
 
-    public constructor() {
+    public constructor(typeChecker: ts.TypeChecker) {
+        this.typeChecker = typeChecker;
         this.llvmContext = new llvm.LLVMContext();
         this.llvmModule = new llvm.Module("test", this.llvmContext);
     }
@@ -284,7 +309,9 @@ export function initializeLLVM() {
 }
 
 export function generateModuleFromProgram(program: ts.Program): llvm.Module {
-    const ctx = new Context();
+    const ctx = new Context(
+        program.getTypeChecker()
+    );
 
     let putsFnType = llvm.FunctionType.get(llvm.Type.getInt32Ty(ctx.llvmContext), [
         llvm.Type.getInt8PtrTy(ctx.llvmContext)
@@ -294,8 +321,12 @@ export function generateModuleFromProgram(program: ts.Program): llvm.Module {
     let number2stringFnType = llvm.FunctionType.get(llvm.Type.getInt8PtrTy(ctx.llvmContext), [
         llvm.Type.getDoubleTy(ctx.llvmContext)
     ], false);
-    llvm.Function.create(number2stringFnType, llvm.LinkageTypes.ExternalLinkage, "_Z13number2stringd", ctx.llvmModule);
-    // ctx.llvmModule.getOrInsertFunction();
+    llvm.Function.create(
+        number2stringFnType,
+        llvm.LinkageTypes.ExternalLinkage,
+        CPPMangler.getFunctionName("number2string", <any>[]),
+        ctx.llvmModule
+    );
 
     let mainFnType = llvm.FunctionType.get(llvm.Type.getVoidTy(ctx.llvmContext), false);
     let mainFn = llvm.Function.create(mainFnType, llvm.LinkageTypes.ExternalLinkage, "main", ctx.llvmModule);
