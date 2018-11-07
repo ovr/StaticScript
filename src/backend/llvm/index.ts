@@ -2,6 +2,7 @@
 import * as ts from "typescript";
 import * as llvm from 'llvm-node';
 import {CPPMangler} from "./cpp.mangler";
+import {Context} from "./context";
 
 export function passReturnStatement(parent: ts.ReturnStatement, ctx: Context, builder: llvm.IRBuilder) {
     if (!parent.expression) {
@@ -142,7 +143,7 @@ function buildFromCallExpression(
 }
 
 function buildFromIdentifier(identifier: ts.Identifier, ctx: Context, builder: llvm.IRBuilder): llvm.Value {
-    const variable = ctx.variables.get(<string>identifier.escapedText);
+    const variable = ctx.scope.variables.get(<string>identifier.escapedText);
     if (variable) {
         return variable;
     }
@@ -221,7 +222,7 @@ export function passVariableDeclaration(block: ts.VariableDeclaration, ctx: Cont
                 false
             );
 
-            ctx.variables.set(<string>block.name.escapedText, allocate);
+            ctx.scope.variables.set(<string>block.name.escapedText, allocate);
         }
 
         return;
@@ -267,23 +268,6 @@ function loadIfNeeded(value: llvm.Value, builder: llvm.IRBuilder, ctx: Context):
     }
 
     return value;
-}
-
-class SymbolTable extends Map<string, llvm.Value> {
-
-}
-
-class Context {
-    public typeChecker: ts.TypeChecker;
-    public llvmContext: llvm.LLVMContext;
-    public llvmModule: llvm.Module;
-    public variables: SymbolTable = new SymbolTable();
-
-    public constructor(typeChecker: ts.TypeChecker) {
-        this.typeChecker = typeChecker;
-        this.llvmContext = new llvm.LLVMContext();
-        this.llvmModule = new llvm.Module("test", this.llvmContext);
-    }
 }
 
 function passBlockStatement(node: ts.Block, ctx: Context, builder: llvm.IRBuilder) {
