@@ -2,7 +2,8 @@
 import * as ts from 'typescript';
 import * as path from 'path';
 import * as llvm from 'llvm-node';
-import {generateModuleFromFile} from './Backend/LLVM';
+
+import {initializeLLVM, generateModuleFromProgram} from './backend/llvm';
 
 const options = {
     lib: [
@@ -34,15 +35,10 @@ if (diagnostics.length) {
     process.exit(1);
 }
 
-llvm.initializeAllTargetInfos();
-llvm.initializeAllTargets();
-llvm.initializeAllTargetMCs();
-llvm.initializeAllAsmParsers();
-llvm.initializeAllAsmPrinters();
+initializeLLVM();
 
-const llvmModule = generateModuleFromFile(program);
+const llvmModule = generateModuleFromProgram(program);
 
 llvm.verifyModule(llvmModule);
 
 console.log(llvmModule.print());
-

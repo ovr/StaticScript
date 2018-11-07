@@ -282,7 +282,15 @@ function passNode(node: ts.Node, ctx: Context, builder: IRBuilder) {
     }
 }
 
-export function generateModuleFromFile(program: ts.Program): llvm.Module {
+export function initializeLLVM() {
+    llvm.initializeAllTargetInfos();
+    llvm.initializeAllTargets();
+    llvm.initializeAllTargetMCs();
+    llvm.initializeAllAsmParsers();
+    llvm.initializeAllAsmPrinters();
+}
+
+export function generateModuleFromProgram(program: ts.Program): llvm.Module {
     const ctx = new Context();
 
     let putsFnType = llvm.FunctionType.get(llvm.Type.getInt32Ty(ctx.llvmContext), [
