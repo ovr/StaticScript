@@ -15,7 +15,7 @@
     "javascript"
   ],
   "bin": {
-    "tsc": "./bin/tsc"
+    "ssc": "./bin/ssc"
   },
   "devDependencies": {
     "@types/node": "10.12.2"
