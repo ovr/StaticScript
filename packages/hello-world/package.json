@@ -1,0 +1,14 @@
+{
+  "name": "@static-script/hello-world",
+  "version": "0.1.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "ssc"
+  },
+  "author": "Dmitry Patsura <talk@dmtry.me>",
+  "license": "MIT",
+  "devDependencies": {
+    "static-script": "^0.2.0"
+  }
+}
