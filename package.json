@@ -16,8 +16,9 @@
     "javascript"
   ],
   "files": [
-    "dist",
-    "bin",
+    "dist/*",
+    "bin/*",
+    "packages/*",
     "staticscript.d.ts"
   ],
   "bin": {
