@@ -1,7 +1,17 @@
-HLVM (development title, will be changed)
-=========================================
+StaticScript
+============
 
-> TypeScript compiler based on LLVM framework.
+> Real Static Typed Script - RSTS project.
+
+StaticScript is a language on top of TypeScript as frontend LLVM as backend for codegeneration to binary. 
+
+# Installing
+
+For our nightly builds:
+
+```sh
+npm install -g staticscript@next
+```
 
 ### LICENSE
 
