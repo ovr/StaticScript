@@ -13,6 +13,6 @@
   },
   "dependencies": {
     "typescript": "^3.1.1",
-    "llvm-node": "^2.0.8"
+    "llvm-node": "github:MichaReiser/llvm-node#master"
   }
 }

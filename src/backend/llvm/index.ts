@@ -3,6 +3,7 @@ import * as ts from "typescript";
 import * as llvm from 'llvm-node';
 import {CPPMangler} from "./cpp.mangler";
 import {Context} from "./context";
+import {NativeTypeResolver} from "./native-type-resolver";
 
 export function passReturnStatement(parent: ts.ReturnStatement, ctx: Context, builder: llvm.IRBuilder) {
     if (!parent.expression) {
@@ -67,8 +68,17 @@ export function buildFromStringValue(node: ts.StringLiteral, ctx: Context, build
     );
 }
 
-function buildFromNumberValue(value: ts.NumericLiteral, ctx: Context, builder: llvm.IRBuilder): llvm.Value {
-    return llvm.ConstantFP.get(ctx.llvmContext, parseFloat(value.text));
+function buildFromNumericLiteral(
+    value: ts.NumericLiteral,
+    ctx: Context,
+    builder: llvm.IRBuilder,
+    lType?: llvm.Type
+): llvm.Value {
+    if (!lType || lType.isDoubleTy()) {
+        return llvm.ConstantFP.get(ctx.llvmContext, parseFloat(value.text));
+    }
+
+    return llvm.ConstantInt.get(ctx.llvmContext, parseInt(value.text), (<llvm.IntegerType>lType).getBitWidth());
 }
 
 function buildFromBinaryExpression(
@@ -181,12 +191,12 @@ function buildFromIdentifier(identifier: ts.Identifier, ctx: Context, builder: l
 }
 
 
-function buildFromExpression(block: ts.Expression, ctx: Context, builder: llvm.IRBuilder): llvm.Value {
+function buildFromExpression(block: ts.Expression, ctx: Context, builder: llvm.IRBuilder, lType?: llvm.Type): llvm.Value {
     switch (block.kind) {
         case ts.SyntaxKind.Identifier:
             return buildFromIdentifier(<any>block, ctx, builder);
         case ts.SyntaxKind.NumericLiteral:
-            return buildFromNumberValue(<any>block, ctx, builder);
+            return buildFromNumericLiteral(<any>block, ctx, builder, lType);
         case ts.SyntaxKind.StringLiteral:
             return buildFromStringValue(<any>block, ctx, builder);
         case ts.SyntaxKind.BinaryExpression:
@@ -207,11 +217,18 @@ function buildFromExpression(block: ts.Expression, ctx: Context, builder: llvm.I
 
 export function passVariableDeclaration(block: ts.VariableDeclaration, ctx: Context, builder: llvm.IRBuilder) {
     if (block.initializer) {
-        const defaultValue = buildFromExpression(block.initializer, ctx, builder);
+        const type = ctx.typeChecker.getTypeAtLocation(block);
+
+        const llvmType = NativeTypeResolver.getType(
+            type,
+            ctx
+        );
+
+        const defaultValue = buildFromExpression(block.initializer, ctx, builder, llvmType);
 
         if (block.name.kind == ts.SyntaxKind.Identifier) {
             const allocate = builder.createAlloca(
-                llvm.Type.getDoubleTy(ctx.llvmContext),
+                llvmType,
                 undefined,
                 <string>block.name.escapedText
             );
