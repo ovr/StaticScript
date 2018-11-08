@@ -1,13 +1,22 @@
 {
-  "name": "hlvm",
-  "version": "0.0.0",
+  "name": "static-script",
+  "version": "0.1.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc"
   },
   "author": "Dmitry Patsura <talk@dmtry.me>",
   "license": "MIT",
+  "keywords": [
+    "StaticScript",
+    "compiler",
+    "language",
+    "javascript"
+  ],
+  "bin": {
+    "tsc": "./bin/tsc"
+  },
   "devDependencies": {
     "@types/node": "10.12.2"
   },
