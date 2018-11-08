@@ -7,7 +7,8 @@ import {initializeLLVM, generateModuleFromProgram} from './backend/llvm';
 
 const options = {
     lib: [
-        path.join(__dirname, '..', 'runtime', 'lib.runtime.d.ts')
+        path.join(__dirname, '..', 'runtime', 'lib.runtime.d.ts'),
+        path.join(__dirname, '..', 'language.d.ts')
     ],
     types: []
 };
