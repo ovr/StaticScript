@@ -15,6 +15,8 @@ interface String {}
 
 interface Array<T = any> {}
 
+declare function puts(str: string): void;
+
 declare type int8 = {};
 declare type int16 = {};
 declare type int32 = {};

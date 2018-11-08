@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "description": "",
   "main": "index.js",
+  "typings": "staticscript.d.ts",
   "scripts": {
     "build": "tsc"
   },
