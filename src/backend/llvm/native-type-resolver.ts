@@ -23,6 +23,36 @@ export class NativeTypeResolver {
             );
         }
 
+        const aliasSymbol = type.aliasSymbol;
+        if (aliasSymbol) {
+            switch (aliasSymbol.escapedName) {
+                case 'int8':
+                    return llvm.Type.getInt8Ty(
+                        ctx.llvmContext
+                    );
+                case 'int16':
+                    return llvm.Type.getInt16Ty(
+                        ctx.llvmContext
+                    );
+                case 'int32':
+                    return llvm.Type.getInt32Ty(
+                        ctx.llvmContext
+                    );
+                case 'int64':
+                    return llvm.Type.getInt64Ty(
+                        ctx.llvmContext
+                    );
+                case 'int128':
+                    return llvm.Type.getInt128Ty(
+                        ctx.llvmContext
+                    );
+                default:
+                    throw new Error(
+                        `Unsupported type, "${<string>aliasSymbol.escapedName}"`
+                    );
+            }
+        }
+
         throw new Error(
             `Unsupported type, it's to dynamic`
         );
