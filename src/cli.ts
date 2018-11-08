@@ -22,16 +22,18 @@ const program = ts.createProgram(files, options, host);
 const diagnostics = ts.getPreEmitDiagnostics(program);
 
 if (diagnostics.length) {
-    diagnostics.forEach(diagnostic => {
-        const message = ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n');
-        if (!diagnostic.file) {
-            console.log(message);
-            return;
+    const format = ts.formatDiagnosticsWithColorAndContext(diagnostics, {
+        getNewLine(): string {
+            return '\n';
+        },
+        getCurrentDirectory(): string {
+            return __dirname;
+        },
+        getCanonicalFileName(fileName: string): string {
+            return fileName;
         }
-
-        const { line, character } = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start!);
-        console.log(`${diagnostic.file.fileName} (${line + 1},${character + 1}): ${message}`);
     });
+    console.log(format);
 
     process.exit(1);
 }
