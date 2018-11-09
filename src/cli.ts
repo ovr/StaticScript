@@ -2,8 +2,25 @@
 import * as ts from 'typescript';
 import * as path from 'path';
 import * as llvm from 'llvm-node';
+import * as cli from "commander";
 
 import {initializeLLVM, generateModuleFromProgram} from './backend/llvm';
+
+interface CommandLineArguments {
+    args: string[];
+    printIR?: boolean;
+}
+
+function parseCommandLine(): CommandLineArguments {
+    cli
+        .version('next')
+        .option('-ir, --printIR', 'Print IR')
+        .parse(process.argv);
+
+    return cli as any as CommandLineArguments;
+}
+
+const compilerOptions = parseCommandLine();
 
 const options = {
     lib: [
@@ -44,4 +61,6 @@ const llvmModule = generateModuleFromProgram(program);
 
 llvm.verifyModule(llvmModule);
 
-console.log(llvmModule.print());
+if (compilerOptions.printIR) {
+    console.log(llvmModule.print());
+}

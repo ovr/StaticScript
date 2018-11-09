@@ -19,10 +19,11 @@
     "ssc": "./bin/ssc"
   },
   "devDependencies": {
-    "@types/node": "10.12.2"
+    "@types/node": "10.12.2",
+    "commander": "^2.19.0"
   },
   "dependencies": {
-    "typescript": "^3.1.1",
-    "llvm-node": "github:MichaReiser/llvm-node#master"
+    "llvm-node": "github:MichaReiser/llvm-node#master",
+    "typescript": "^3.1.1"
   }
 }
