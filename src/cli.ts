@@ -5,6 +5,8 @@ import * as llvm from 'llvm-node';
 import * as cli from "commander";
 
 import {initializeLLVM, generateModuleFromProgram} from './backend/llvm';
+import DiagnosticHostInstance from "./diagnostic.host";
+import UnsupportedError from "./backend/error/unsupported.error";
 
 interface CommandLineArguments {
     args: string[];
@@ -37,17 +39,7 @@ const program = ts.createProgram(files, options, host);
 const diagnostics = ts.getPreEmitDiagnostics(program);
 
 if (diagnostics.length) {
-    const format = ts.formatDiagnosticsWithColorAndContext(diagnostics, {
-        getNewLine(): string {
-            return '\n';
-        },
-        getCurrentDirectory(): string {
-            return __dirname;
-        },
-        getCanonicalFileName(fileName: string): string {
-            return fileName;
-        }
-    });
+    const format = ts.formatDiagnosticsWithColorAndContext(diagnostics, DiagnosticHostInstance);
     console.log(format);
 
     process.exit(1);
@@ -55,10 +47,20 @@ if (diagnostics.length) {
 
 initializeLLVM();
 
-const llvmModule = generateModuleFromProgram(program);
+try {
+    const llvmModule = generateModuleFromProgram(program);
 
-llvm.verifyModule(llvmModule);
+    llvm.verifyModule(llvmModule);
 
-if (cliOptions.printIR) {
-    console.log(llvmModule.print());
+    if (cliOptions.printIR) {
+        console.log(llvmModule.print());
+    }
+} catch (e) {
+    if (e instanceof UnsupportedError) {
+        console.log(ts.formatDiagnostic(e.toDiagnostic(), DiagnosticHostInstance));
+
+        process.exit(1);
+    }
+
+    throw e;
 }

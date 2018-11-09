@@ -4,6 +4,7 @@ import * as llvm from 'llvm-node';
 import {CPPMangler} from "./cpp.mangler";
 import {Context} from "./context";
 import {NativeTypeResolver} from "./native-type-resolver";
+import UnsupportedError from "../error/unsupported.error";
 
 export function passReturnStatement(parent: ts.ReturnStatement, ctx: Context, builder: llvm.IRBuilder) {
     if (!parent.expression) {
@@ -22,7 +23,8 @@ export function passReturnStatement(parent: ts.ReturnStatement, ctx: Context, bu
         );
     }
 
-    throw new Error(
+    throw new UnsupportedError(
+        parent.expression,
         `Unsupported ReturnStatement, unexpected: "${parent.expression.kind}"`
     );
 }
@@ -124,7 +126,8 @@ function buildFromBinaryExpression(
             );
         }
         default:
-            throw new Error(
+            throw new UnsupportedError(
+                expr,
                 `Unsupported BinaryExpression.operator: "${expr.kind}"`
             );
     }
@@ -185,7 +188,8 @@ function buildFromIdentifier(identifier: ts.Identifier, ctx: Context, builder: l
         }
     }
 
-    throw new Error(
+    throw new UnsupportedError(
+        identifier,
         `Unknown Identifier: "${<string>identifier.escapedText}"`
     );
 }
@@ -209,7 +213,8 @@ function buildFromExpression(block: ts.Expression, ctx: Context, builder: llvm.I
             return buildFromExpression((<ts.ParenthesizedExpression>block).expression, ctx, builder);
         }
         default:
-            throw new Error(
+            throw new UnsupportedError(
+                block,
                 `Unsupported Expression.type: "${block.kind}"`
             );
     }
@@ -245,7 +250,10 @@ export function passVariableDeclaration(block: ts.VariableDeclaration, ctx: Cont
         return;
     }
 
-    throw new Error('Unsupported variable declaration block');
+    throw new UnsupportedError(
+        block,
+        'Unsupported variable declaration block'
+    );
 }
 
 export function passVariableStatement(block: ts.VariableStatement, ctx: Context, builder: llvm.IRBuilder) {
@@ -275,7 +283,10 @@ export function passStatement(stmt: ts.Statement, ctx: Context, builder: llvm.IR
             passReturnStatement(<any>stmt, ctx, builder);
             break;
         default:
-            throw new Error(`Unsupported statement: "${stmt.kind}"`);
+            throw new UnsupportedError(
+                stmt,
+                `Unsupported statement: "${stmt.kind}"`
+            );
     }
 }
 
