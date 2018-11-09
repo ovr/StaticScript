@@ -15,12 +15,6 @@
     "language",
     "javascript"
   ],
-  "files": [
-    "dist/*",
-    "bin/*",
-    "packages/*",
-    "staticscript.d.ts"
-  ],
   "bin": {
     "ssc": "./bin/ssc"
   },
