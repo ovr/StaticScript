@@ -20,7 +20,7 @@ function parseCommandLine(): CommandLineArguments {
     return cli as any as CommandLineArguments;
 }
 
-const compilerOptions = parseCommandLine();
+const cliOptions = parseCommandLine();
 
 const options = {
     lib: [
@@ -30,9 +30,7 @@ const options = {
     types: []
 };
 
-const files = [
-    'sandbox/do-simple-math.ts'
-];
+const files = cliOptions.args;
 
 const host = ts.createCompilerHost(options);
 const program = ts.createProgram(files, options, host);
@@ -61,6 +59,6 @@ const llvmModule = generateModuleFromProgram(program);
 
 llvm.verifyModule(llvmModule);
 
-if (compilerOptions.printIR) {
+if (cliOptions.printIR) {
     console.log(llvmModule.print());
 }
