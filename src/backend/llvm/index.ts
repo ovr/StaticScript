@@ -5,6 +5,7 @@ import {CPPMangler} from "./cpp.mangler";
 import {Context} from "./context";
 import {NativeTypeResolver} from "./native-type-resolver";
 import UnsupportedError from "../error/unsupported.error";
+import {NativeType} from "./native-type";
 
 export function passReturnStatement(parent: ts.ReturnStatement, ctx: Context, builder: llvm.IRBuilder) {
     if (!parent.expression) {
@@ -74,13 +75,19 @@ function buildFromNumericLiteral(
     value: ts.NumericLiteral,
     ctx: Context,
     builder: llvm.IRBuilder,
-    lType?: llvm.Type
+    nativeType?: NativeType
 ): llvm.Value {
-    if (!lType || lType.isDoubleTy()) {
+    if (!nativeType || nativeType.getType().isDoubleTy()) {
         return llvm.ConstantFP.get(ctx.llvmContext, parseFloat(value.text));
     }
 
-    return llvm.ConstantInt.get(ctx.llvmContext, parseInt(value.text), (<llvm.IntegerType>lType).getBitWidth());
+    const type = nativeType.getType();
+    return llvm.ConstantInt.get(
+        ctx.llvmContext,
+        parseInt(value.text),
+        (<llvm.IntegerType>type).getBitWidth(),
+        nativeType.isSigned()
+    );
 }
 
 function buildFromBinaryExpression(
@@ -195,12 +202,12 @@ function buildFromIdentifier(identifier: ts.Identifier, ctx: Context, builder: l
 }
 
 
-function buildFromExpression(block: ts.Expression, ctx: Context, builder: llvm.IRBuilder, lType?: llvm.Type): llvm.Value {
+function buildFromExpression(block: ts.Expression, ctx: Context, builder: llvm.IRBuilder, nativeType?: NativeType): llvm.Value {
     switch (block.kind) {
         case ts.SyntaxKind.Identifier:
             return buildFromIdentifier(<any>block, ctx, builder);
         case ts.SyntaxKind.NumericLiteral:
-            return buildFromNumericLiteral(<any>block, ctx, builder, lType);
+            return buildFromNumericLiteral(<any>block, ctx, builder, nativeType);
         case ts.SyntaxKind.StringLiteral:
             return buildFromStringValue(<any>block, ctx, builder);
         case ts.SyntaxKind.BinaryExpression:
@@ -224,16 +231,16 @@ export function passVariableDeclaration(block: ts.VariableDeclaration, ctx: Cont
     if (block.initializer) {
         const type = ctx.typeChecker.getTypeAtLocation(block);
 
-        const llvmType = NativeTypeResolver.getType(
+        const nativeType = NativeTypeResolver.getType(
             type,
             ctx
         );
 
-        const defaultValue = buildFromExpression(block.initializer, ctx, builder, llvmType);
+        const defaultValue = buildFromExpression(block.initializer, ctx, builder, nativeType);
 
         if (block.name.kind == ts.SyntaxKind.Identifier) {
             const allocate = builder.createAlloca(
-                llvmType,
+                nativeType.getType(),
                 undefined,
                 <string>block.name.escapedText
             );
