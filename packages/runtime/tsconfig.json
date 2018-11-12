@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "noUnusedLocals": true,
+    "pretty": true,
+    "strictNullChecks": true,
+    "target": "es2018",
+    "lib": ["es2018" ],
+    "sourceMap": true
+  }
+}
