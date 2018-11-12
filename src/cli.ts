@@ -68,13 +68,13 @@ try {
     }
 
     try {
-        llvm.writeBitcodeToFile(llvmModule, path.join(outputPath, 'main.ll'));
+        llvm.writeBitcodeToFile(llvmModule, path.join(outputPath, 'main.bc'));
 
         const optimizationLevel = "-O3";
 
         execFileSync('llc', [
             optimizationLevel,
-            '-filetype=obj', path.join(outputPath, 'main.ll'),
+            '-filetype=obj', path.join(outputPath, 'main.bc'),
             '-o', path.join(outputPath, 'main.o')
         ]);
         execFileSync("cc", [
