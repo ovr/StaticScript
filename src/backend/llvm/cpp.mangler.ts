@@ -11,6 +11,8 @@ export class CPPMangler {
                             return 'd';
                         case ts.SyntaxKind.StringKeyword:
                             return 'PKc';
+                        case ts.SyntaxKind.BooleanKeyword:
+                            return 'b';
                         default:
                             throw new Error(
                                 `Unsupported mangling parameter type: ${parameter.type.kind}`

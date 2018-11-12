@@ -77,6 +77,24 @@ export function buildFromStringValue(node: ts.StringLiteral, ctx: Context, build
     );
 }
 
+export function buildFromTrueKeyword(node: ts.BooleanLiteral, ctx: Context, builder: llvm.IRBuilder): llvm.Value {
+    return llvm.ConstantInt.get(
+        ctx.llvmContext,
+        1,
+        8,
+        false
+    );
+}
+
+export function buildFromFalseKeyword(node: ts.BooleanLiteral, ctx: Context, builder: llvm.IRBuilder): llvm.Value {
+    return llvm.ConstantInt.get(
+        ctx.llvmContext,
+        1,
+        8,
+        false
+    );
+}
+
 function buildFromNumericLiteral(
     value: ts.NumericLiteral,
     ctx: Context,
@@ -258,6 +276,10 @@ function buildFromExpression(block: ts.Expression, ctx: Context, builder: llvm.I
             return buildFromNumericLiteral(<any>block, ctx, builder, nativeType);
         case ts.SyntaxKind.StringLiteral:
             return buildFromStringValue(<any>block, ctx, builder);
+        case ts.SyntaxKind.TrueKeyword:
+            return buildFromTrueKeyword(<any>block, ctx, builder);
+        case ts.SyntaxKind.FalseKeyword:
+            return buildFromFalseKeyword(<any>block, ctx, builder);
         case ts.SyntaxKind.BinaryExpression:
             return buildFromBinaryExpression(<any>block, ctx, builder);
         case ts.SyntaxKind.CallExpression:

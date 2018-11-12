@@ -22,6 +22,14 @@ export class NativeTypeResolver {
             );
         }
 
+        if ((<any>type).intrinsicName === 'boolean') {
+            return new NativeType(
+                llvm.Type.getInt8Ty(
+                    ctx.llvmContext
+                )
+            );
+        }
+
         if ((<any>type).intrinsicName === 'void') {
             return new NativeType(
                 llvm.Type.getVoidTy(
