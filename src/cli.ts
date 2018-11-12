@@ -3,6 +3,7 @@ import * as ts from 'typescript';
 import * as path from 'path';
 import * as llvm from 'llvm-node';
 import * as cli from "commander";
+import {RUNTIME_ARCHIVE_FILE} from "@static-script/runtime";
 
 import {initializeLLVM, generateModuleFromProgram} from './backend/llvm';
 import DiagnosticHostInstance from "./diagnostic.host";
@@ -79,7 +80,7 @@ try {
         execFileSync("cc", [
             optimizationLevel,
             path.join(outputPath, 'main.o'),
-            path.join(path.dirname(__filename), '..', 'packages', 'runtime', 'libhlvm-runtime.a'),
+            RUNTIME_ARCHIVE_FILE,
             '-o', path.join(outputPath, 'main'),
             '-lstdc++',
             '-std=c++11',

@@ -1,8 +1,7 @@
 src
 runtime-1
 runtime-test
-packages/hello-world
-packages/definition
+packages
 node_modules
 .idea
 hello_world.*

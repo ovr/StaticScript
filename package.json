@@ -23,6 +23,7 @@
     "commander": "^2.19.0"
   },
   "dependencies": {
+    "@static-script/runtime": "^0.1.0",
     "llvm-node": "github:MichaReiser/llvm-node#master",
     "typescript": "^3.1.1"
   }
