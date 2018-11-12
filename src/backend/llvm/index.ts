@@ -6,6 +6,10 @@ import {Context} from "./context";
 import {NativeTypeResolver} from "./native-type-resolver";
 import UnsupportedError from "../error/unsupported.error";
 import {NativeType} from "./native-type";
+import {RUNTIME_DEFINITION_FILE} from "@static-script/runtime";
+import {LANGUAGE_DEFINITION_FILE} from "../../constants";
+import {CMangler} from "./c.mangler";
+import {ManglerInterface} from "./mangler.interface";
 
 export function passReturnStatement(parent: ts.ReturnStatement, ctx: Context, builder: llvm.IRBuilder) {
     if (!parent.expression) {
@@ -162,6 +166,35 @@ function buildFromCallExpression(
     );
 }
 
+function declareFunctionFromDefinition(
+    stmt: ts.FunctionDeclaration,
+    ctx: Context,
+    builder: llvm.IRBuilder,
+    mangler: ManglerInterface
+): llvm.Function {
+    let fnType = llvm.FunctionType.get(
+        stmt.type ? NativeTypeResolver.getType(ctx.typeChecker.getTypeFromTypeNode(stmt.type), ctx).getType() : llvm.Type.getVoidTy(ctx.llvmContext),
+        stmt.parameters.map((parameters) => {
+            if (parameters.type) {
+                return NativeTypeResolver.getType(ctx.typeChecker.getTypeFromTypeNode(parameters.type), ctx).getType()
+            }
+
+            throw new UnsupportedError(
+                stmt,
+                `Unsupported parameter`
+            );
+        }),
+        false
+    );
+
+    return llvm.Function.create(
+        fnType,
+        llvm.LinkageTypes.ExternalLinkage,
+        mangler.getFunctionName(<string>stmt.name.escapedText, stmt.parameters),
+        ctx.llvmModule
+    );
+}
+
 function buildFromIdentifier(identifier: ts.Identifier, ctx: Context, builder: llvm.IRBuilder): llvm.Value {
     const variable = ctx.scope.variables.get(<string>identifier.escapedText);
     if (variable) {
@@ -183,14 +216,24 @@ function buildFromIdentifier(identifier: ts.Identifier, ctx: Context, builder: l
 
         const symbolDeclaration = <ts.FunctionDeclaration>symbol.declarations[0];
         if (symbolDeclaration.name) {
-            const mangledFunctionName = CPPMangler.getFunctionName(
-                <string>symbolDeclaration.name.escapedText,
-                symbolDeclaration.parameters
-            );
+            const sourceFile = symbolDeclaration.getSourceFile();
 
-            const fn = ctx.llvmModule.getFunction(mangledFunctionName);
-            if (fn) {
-                return fn;
+            if (sourceFile.fileName === RUNTIME_DEFINITION_FILE) {
+                return declareFunctionFromDefinition(
+                    symbolDeclaration,
+                    ctx,
+                    builder,
+                    CPPMangler
+                );
+            }
+
+            if (sourceFile.fileName === LANGUAGE_DEFINITION_FILE) {
+                return declareFunctionFromDefinition(
+                    symbolDeclaration,
+                    ctx,
+                    builder,
+                    CMangler
+                );
             }
         }
     }
@@ -332,25 +375,6 @@ export function generateModuleFromProgram(program: ts.Program): llvm.Module {
         program.getTypeChecker()
     );
 
-    let putsFnType = llvm.FunctionType.get(llvm.Type.getInt32Ty(ctx.llvmContext), [
-        llvm.Type.getInt8PtrTy(ctx.llvmContext)
-    ], false);
-    ctx.llvmModule.getOrInsertFunction('puts', putsFnType);
-
-    let number2stringFnType = llvm.FunctionType.get(llvm.Type.getInt8PtrTy(ctx.llvmContext), [
-        llvm.Type.getDoubleTy(ctx.llvmContext)
-    ], false);
-    llvm.Function.create(
-        number2stringFnType,
-        llvm.LinkageTypes.ExternalLinkage,
-        CPPMangler.getFunctionName("number2string", <any>[
-            {
-                type: { kind: ts.SyntaxKind.NumberKeyword }
-            }
-        ]),
-        ctx.llvmModule
-    );
-
     let mainFnType = llvm.FunctionType.get(llvm.Type.getVoidTy(ctx.llvmContext), false);
     let mainFn = llvm.Function.create(mainFnType, llvm.LinkageTypes.ExternalLinkage, "main", ctx.llvmModule);
 
@@ -358,7 +382,9 @@ export function generateModuleFromProgram(program: ts.Program): llvm.Module {
     let builder = new llvm.IRBuilder(block);
 
     for (const sourceFile of program.getSourceFiles()) {
-        sourceFile.forEachChild((node: ts.Node) => passNode(node, ctx, builder))
+        if (!sourceFile.isDeclarationFile) {
+            sourceFile.forEachChild((node: ts.Node) => passNode(node, ctx, builder))
+        }
     }
 
     builder.createRetVoid();

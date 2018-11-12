@@ -6,25 +6,27 @@ import {NativeType} from "./native-type";
 
 export class NativeTypeResolver {
     static getType(type: ts.Type, ctx: Context): NativeType {
-        if (type.isLiteral()) {
-            if (type.isNumberLiteral()) {
-                return new NativeType(
-                    llvm.Type.getDoubleTy(
-                        ctx.llvmContext
-                    )
-                );
-            }
+        if (type.isNumberLiteral() || (<any>type).intrinsicName === 'number') {
+            return new NativeType(
+                llvm.Type.getDoubleTy(
+                    ctx.llvmContext
+                )
+            );
+        }
 
-            if (type.isStringLiteral()) {
-                return new NativeType(
-                    llvm.Type.getInt8PtrTy(
-                        ctx.llvmContext
-                    )
-                );
-            }
+        if (type.isStringLiteral() || (<any>type).intrinsicName === 'string') {
+            return new NativeType(
+                llvm.Type.getInt8PtrTy(
+                    ctx.llvmContext
+                )
+            );
+        }
 
-            throw new Error(
-                `Unsupported literal type`
+        if ((<any>type).intrinsicName === 'void') {
+            return new NativeType(
+                llvm.Type.getVoidTy(
+                    ctx.llvmContext
+                )
             );
         }
 
