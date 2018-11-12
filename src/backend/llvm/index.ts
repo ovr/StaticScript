@@ -10,6 +10,8 @@ import {RUNTIME_DEFINITION_FILE} from "@static-script/runtime";
 import {LANGUAGE_DEFINITION_FILE} from "../../constants";
 import {CMangler} from "./c.mangler";
 import {ManglerInterface} from "./mangler.interface";
+import {SignatureDeclaration} from "typescript";
+import {FunctionDeclaration} from "typescript";
 
 export function passReturnStatement(parent: ts.ReturnStatement, ctx: Context, builder: llvm.IRBuilder) {
     if (!parent.expression) {
@@ -144,14 +146,49 @@ function buildFromBinaryExpression(
     }
 }
 
+function buildCalleFromCallExpression(
+    expr: ts.CallExpression,
+    ctx: Context,
+    builder: llvm.IRBuilder
+) {
+    const calleSignature = ctx.typeChecker.getResolvedSignature(expr);
+    if (calleSignature) {
+        const symbolDeclaration = <ts.SignatureDeclaration>calleSignature.declaration;
+        if (symbolDeclaration.name) {
+            const sourceFile = symbolDeclaration.getSourceFile();
+
+            if (sourceFile.fileName === RUNTIME_DEFINITION_FILE) {
+                return declareFunctionFromDefinition(
+                    <ts.FunctionDeclaration>symbolDeclaration,
+                    ctx,
+                    builder,
+                    CPPMangler
+                );
+            }
+
+            if (sourceFile.fileName === LANGUAGE_DEFINITION_FILE) {
+                return declareFunctionFromDefinition(
+                    <ts.FunctionDeclaration>symbolDeclaration,
+                    ctx,
+                    builder,
+                    CMangler
+                );
+            }
+        }
+    }
+
+    return buildFromExpression(expr.expression, ctx, builder);
+}
+
 function buildFromCallExpression(
     expr: ts.CallExpression,
     ctx: Context,
     builder: llvm.IRBuilder
 ) {
-    const callle = buildFromExpression(expr.expression, ctx, builder);
+    const callle = buildCalleFromCallExpression(expr, ctx, builder);
     if (!callle) {
-        throw new Error(
+        throw new UnsupportedError(
+            expr,
             `We cannot prepare expression to call this function, ${expr.expression}`
         );
     }
@@ -204,38 +241,6 @@ function buildFromIdentifier(identifier: ts.Identifier, ctx: Context, builder: l
     const fn = ctx.llvmModule.getFunction(<string>identifier.escapedText);
     if (fn) {
         return fn;
-    }
-
-    const symbol = ctx.typeChecker.getSymbolAtLocation(identifier);
-    if (symbol && symbol.declarations.length > 0) {
-        if (symbol.declarations.length > 1) {
-            throw new Error(
-                `Multiple declarations are not supported`
-            );
-        }
-
-        const symbolDeclaration = <ts.FunctionDeclaration>symbol.declarations[0];
-        if (symbolDeclaration.name) {
-            const sourceFile = symbolDeclaration.getSourceFile();
-
-            if (sourceFile.fileName === RUNTIME_DEFINITION_FILE) {
-                return declareFunctionFromDefinition(
-                    symbolDeclaration,
-                    ctx,
-                    builder,
-                    CPPMangler
-                );
-            }
-
-            if (sourceFile.fileName === LANGUAGE_DEFINITION_FILE) {
-                return declareFunctionFromDefinition(
-                    symbolDeclaration,
-                    ctx,
-                    builder,
-                    CMangler
-                );
-            }
-        }
     }
 
     throw new UnsupportedError(

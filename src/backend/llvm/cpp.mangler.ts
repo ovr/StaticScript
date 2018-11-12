@@ -10,7 +10,7 @@ export class CPPMangler {
                         case ts.SyntaxKind.NumberKeyword:
                             return 'd';
                         case ts.SyntaxKind.StringKeyword:
-                            return 'c';
+                            return 'PKc';
                         default:
                             throw new Error(
                                 `Unsupported mangling parameter type: ${parameter.type.kind}`

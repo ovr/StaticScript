@@ -75,7 +75,7 @@ try {
         execFileSync('llc', [
             optimizationLevel,
             '-filetype=obj', path.join(outputPath, 'main.bc'),
-            '-o', path.join(outputPath, 'main.o')
+            '-o', path.join(outputPath, 'main.o'),
         ]);
         execFileSync("cc", [
             optimizationLevel,
