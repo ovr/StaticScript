@@ -3,7 +3,7 @@ import * as ts from 'typescript';
 import * as path from 'path';
 import * as llvm from 'llvm-node';
 import * as cli from "commander";
-import {RUNTIME_ARCHIVE_FILE} from "@static-script/runtime";
+import {RUNTIME_ARCHIVE_FILE, RUNTIME_DEFINITION_FILE} from "@static-script/runtime";
 
 import {initializeLLVM, generateModuleFromProgram} from './backend/llvm';
 import DiagnosticHostInstance from "./diagnostic.host";
@@ -31,7 +31,7 @@ const cliOptions = parseCommandLine();
 
 const options = {
     lib: [
-        path.join(__dirname, '..', 'packages', 'runtime', 'lib.runtime.d.ts'),
+        RUNTIME_DEFINITION_FILE,
         path.join(__dirname, '..', 'staticscript.d.ts')
     ],
     types: []

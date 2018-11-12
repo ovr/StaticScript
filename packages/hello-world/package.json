@@ -9,6 +9,6 @@
   "author": "Dmitry Patsura <talk@dmtry.me>",
   "license": "MIT",
   "devDependencies": {
-    "static-script": "^0.2.0"
+    "static-script": "^0.4.0"
   }
 }
