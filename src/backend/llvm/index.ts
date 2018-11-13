@@ -79,7 +79,7 @@ export function buildFromTrueKeyword(node: ts.BooleanLiteral, ctx: Context, buil
     return llvm.ConstantInt.get(
         ctx.llvmContext,
         1,
-        8,
+        1,
         false
     );
 }
@@ -88,7 +88,7 @@ export function buildFromFalseKeyword(node: ts.BooleanLiteral, ctx: Context, bui
     return llvm.ConstantInt.get(
         ctx.llvmContext,
         0,
-        8,
+        1,
         false
     );
 }
