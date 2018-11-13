@@ -34,6 +34,27 @@ export function passReturnStatement(parent: ts.ReturnStatement, ctx: Context, bu
     );
 }
 
+export function passIfStatement(parent: ts.IfStatement, ctx: Context, builder: llvm.IRBuilder) {
+    const positiveBlock = llvm.BasicBlock.create(ctx.llvmContext, "if.true");
+    ctx.scope.currentFunction.addBasicBlock(positiveBlock);
+
+    const negativeBlock = llvm.BasicBlock.create(ctx.llvmContext, "if.false");
+    ctx.scope.currentFunction.addBasicBlock(negativeBlock);
+
+    const next = llvm.BasicBlock.create(ctx.llvmContext, "if.end");
+    ctx.scope.currentFunction.addBasicBlock(next);
+
+    builder.createBr(positiveBlock);
+
+    builder.setInsertionPoint(positiveBlock);
+    builder.createBr(next);
+
+    builder.setInsertionPoint(negativeBlock);
+    builder.createBr(next);
+
+    builder.setInsertionPoint(next);
+}
+
 export function passFunctionDeclaration(parent: ts.FunctionDeclaration, ctx: Context, builder: llvm.IRBuilder) {
     if (!parent.name || !parent.name.escapedText) {
         throw Error('Function must be declared with name');
@@ -396,6 +417,9 @@ export function passStatement(stmt: ts.Statement, ctx: Context, builder: llvm.IR
         case ts.SyntaxKind.ReturnStatement:
             passReturnStatement(<any>stmt, ctx, builder);
             break;
+        case ts.SyntaxKind.IfStatement:
+            passIfStatement(<any>stmt, ctx, builder);
+            break;
         default:
             throw new UnsupportedError(
                 stmt,
@@ -439,11 +463,13 @@ export function generateModuleFromProgram(program: ts.Program): llvm.Module {
         program.getTypeChecker()
     );
 
-    let mainFnType = llvm.FunctionType.get(llvm.Type.getVoidTy(ctx.llvmContext), false);
-    let mainFn = llvm.Function.create(mainFnType, llvm.LinkageTypes.ExternalLinkage, "main", ctx.llvmModule);
+    const mainFnType = llvm.FunctionType.get(llvm.Type.getVoidTy(ctx.llvmContext), false);
+    const mainFn = llvm.Function.create(mainFnType, llvm.LinkageTypes.ExternalLinkage, "main", ctx.llvmModule);
 
-    let block = llvm.BasicBlock.create(ctx.llvmContext, "Entry", mainFn);
-    let builder = new llvm.IRBuilder(block);
+    const block = llvm.BasicBlock.create(ctx.llvmContext, "Entry", mainFn);
+    const builder = new llvm.IRBuilder(block);
+
+    ctx.scope.currentFunction = mainFn;
 
     for (const sourceFile of program.getSourceFiles()) {
         if (!sourceFile.isDeclarationFile) {
