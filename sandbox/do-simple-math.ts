@@ -15,6 +15,8 @@
 
     console_log("hello");
     console_log(doMath());
-    console_log(true);
-    console_log(false);
+    // console_log(true);
+    // console_log(false);
+    console_log(1 > 5);
+    console_log(1 < 5);
 }

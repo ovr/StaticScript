@@ -10,8 +10,6 @@ import {RUNTIME_DEFINITION_FILE} from "@static-script/runtime";
 import {LANGUAGE_DEFINITION_FILE} from "../../constants";
 import {CMangler} from "./c.mangler";
 import {ManglerInterface} from "./mangler.interface";
-import {SignatureDeclaration} from "typescript";
-import {FunctionDeclaration} from "typescript";
 
 export function passReturnStatement(parent: ts.ReturnStatement, ctx: Context, builder: llvm.IRBuilder) {
     if (!parent.expression) {
@@ -156,10 +154,36 @@ function buildFromBinaryExpression(
                 loadIfNeeded(right, builder, ctx)
             );
         }
+        case ts.SyntaxKind.GreaterThanToken: {
+            const left = buildFromExpression(expr.left, ctx, builder);
+            const right = buildFromExpression(expr.right, ctx, builder);
+
+            const leftInt = builder.createZExt(left, llvm.Type.getInt32Ty(ctx.llvmContext));
+            const rightInt = builder.createZExt(right, llvm.Type.getInt32Ty(ctx.llvmContext));
+
+            return builder.createFCmpOGT(
+                leftInt,
+                rightInt,
+                'cmpGT'
+            );
+        }
+        case ts.SyntaxKind.LessThanToken: {
+            const left = buildFromExpression(expr.left, ctx, builder);
+            const right = buildFromExpression(expr.right, ctx, builder);
+
+            const leftInt = builder.createZExt(left, llvm.Type.getInt32Ty(ctx.llvmContext));
+            const rightInt = builder.createZExt(right, llvm.Type.getInt32Ty(ctx.llvmContext));
+
+            return builder.createFCmpOLT(
+                leftInt,
+                rightInt,
+                'cmpLT'
+            );
+        }
         default:
             throw new UnsupportedError(
                 expr,
-                `Unsupported BinaryExpression.operator: "${expr.kind}"`
+                `Unsupported BinaryExpression.operator: "${expr.operatorToken.kind}"`
             );
     }
 }
