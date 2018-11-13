@@ -13,6 +13,8 @@
     const d: int64 = 10;
     const e: int128 = 10;
 
-    puts("hello");
-    puts(number2string(doMath()));
+    console_log("hello");
+    console_log(doMath());
+    console_log(true);
+    console_log(false);
 }

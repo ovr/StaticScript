@@ -89,7 +89,7 @@ export function buildFromTrueKeyword(node: ts.BooleanLiteral, ctx: Context, buil
 export function buildFromFalseKeyword(node: ts.BooleanLiteral, ctx: Context, builder: llvm.IRBuilder): llvm.Value {
     return llvm.ConstantInt.get(
         ctx.llvmContext,
-        1,
+        0,
         8,
         false
     );
@@ -171,26 +171,39 @@ function buildCalleFromCallExpression(
 ) {
     const calleSignature = ctx.typeChecker.getResolvedSignature(expr);
     if (calleSignature) {
+        if (ctx.signature.has(calleSignature)) {
+            return ctx.signature.get(calleSignature);
+        }
+
         const symbolDeclaration = <ts.SignatureDeclaration>calleSignature.declaration;
         if (symbolDeclaration.name) {
             const sourceFile = symbolDeclaration.getSourceFile();
 
             if (sourceFile.fileName === RUNTIME_DEFINITION_FILE) {
-                return declareFunctionFromDefinition(
+                const llvmFunction = declareFunctionFromDefinition(
                     <ts.FunctionDeclaration>symbolDeclaration,
                     ctx,
                     builder,
                     CPPMangler
                 );
+
+                ctx.signature.set(calleSignature, llvmFunction);
+
+                return llvmFunction;
             }
 
             if (sourceFile.fileName === LANGUAGE_DEFINITION_FILE) {
-                return declareFunctionFromDefinition(
+                const llvmFunction = declareFunctionFromDefinition(
                     <ts.FunctionDeclaration>symbolDeclaration,
                     ctx,
                     builder,
                     CMangler
                 );
+
+
+                ctx.signature.set(calleSignature, llvmFunction);
+
+                return llvmFunction;
             }
         }
     }
