@@ -24,7 +24,7 @@ export class NativeTypeResolver {
 
         if ((<any>type).intrinsicName === 'boolean') {
             return new NativeType(
-                llvm.Type.getInt8Ty(
+                llvm.Type.getInt1Ty(
                     ctx.llvmContext
                 )
             );
