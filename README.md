@@ -3,14 +3,14 @@ StaticScript
 
 > Real Static Typed Script - RSTS project.
 
-StaticScript is a language on top of TypeScript as frontend LLVM as backend for codegeneration to binary. 
+StaticScript is a language on top of TypeScript as frontend and LLVM as backend for code-generation to binary. 
 
 # Installing
 
-For our nightly builds:
+For latest stable version:
 
 ```sh
-npm install -g staticscript@next
+npm install -g static-script
 ```
 
 ### LICENSE

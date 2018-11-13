@@ -6,4 +6,4 @@ node_modules
 .idea
 hello_world.*
 main.dSYM
-main
+output
