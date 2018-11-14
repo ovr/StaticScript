@@ -44,15 +44,38 @@ export function passIfStatement(parent: ts.IfStatement, ctx: Context, builder: l
     const next = llvm.BasicBlock.create(ctx.llvmContext, "if.end");
     ctx.scope.currentFunction.addBasicBlock(next);
 
-    builder.createBr(positiveBlock);
+    emitCondition(
+        parent.expression,
+        ctx,
+        builder,
+        positiveBlock,
+        negativeBlock
+    );
 
     builder.setInsertionPoint(positiveBlock);
+    passNode(parent.thenStatement, ctx, builder);
+
     builder.createBr(next);
 
     builder.setInsertionPoint(negativeBlock);
+    passNode(parent.elseStatement, ctx, builder);
+
     builder.createBr(next);
 
     builder.setInsertionPoint(next);
+}
+
+export function emitCondition(
+    condition: ts.Expression,
+    ctx: Context,
+    builder: llvm.IRBuilder,
+    positiveBlock: llvm.BasicBlock,
+    negativeBlock: llvm.BasicBlock,
+) {
+    const left = buildFromExpression(condition, ctx, builder);
+
+    const conditionBoolValue = builder.createICmpNE(left, llvm.ConstantInt.get(ctx.llvmContext, 0));
+    builder.createCondBr(conditionBoolValue, positiveBlock, negativeBlock);
 }
 
 export function passFunctionDeclaration(parent: ts.FunctionDeclaration, ctx: Context, builder: llvm.IRBuilder) {

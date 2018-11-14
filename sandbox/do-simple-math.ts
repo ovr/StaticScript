@@ -19,4 +19,10 @@
     console_log(false);
     console_log(1 > 5);
     console_log(1 < 5);
+
+    if (5 > 4) {
+        console_log('5 > 4');
+    } else {
+        console_log('5 < 4');
+    }
 }
