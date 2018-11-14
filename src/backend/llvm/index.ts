@@ -450,6 +450,12 @@ export function passVariableDeclaration(block: ts.VariableDeclaration, ctx: Cont
     );
 }
 
+export function passVariableDeclarationList(block: ts.VariableDeclarationList, ctx: Context, builder: llvm.IRBuilder) {
+    for (const variableDeclaration of block.declarations) {
+        passVariableDeclaration(variableDeclaration, ctx, builder);
+    }
+}
+
 export function passVariableStatement(block: ts.VariableStatement, ctx: Context, builder: llvm.IRBuilder) {
     for (const declaration of block.declarationList.declarations) {
         passStatement(<any>declaration, ctx, builder);
@@ -463,6 +469,9 @@ export function passStatement(stmt: ts.Statement, ctx: Context, builder: llvm.IR
             break;
         case ts.SyntaxKind.VariableDeclaration:
             passVariableDeclaration(<any>stmt, ctx, builder);
+            break;
+        case ts.SyntaxKind.VariableDeclarationList:
+            passVariableDeclarationList(<any>stmt, ctx, builder);
             break;
         case ts.SyntaxKind.VariableStatement:
             passVariableStatement(<any>stmt, ctx, builder);
