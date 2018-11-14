@@ -65,6 +65,42 @@ export function passIfStatement(parent: ts.IfStatement, ctx: Context, builder: l
     builder.setInsertionPoint(next);
 }
 
+export function passForStatement(parent: ts.ForStatement, ctx: Context, builder: llvm.IRBuilder) {
+    if (parent.initializer) {
+        passStatement(<any>parent.initializer, ctx, builder);
+    }
+
+    const conditionBlock = llvm.BasicBlock.create(ctx.llvmContext, "for.condition");
+    ctx.scope.currentFunction.addBasicBlock(conditionBlock);
+
+    builder.createBr(conditionBlock);
+
+    const positiveBlock = llvm.BasicBlock.create(ctx.llvmContext, "for.true");
+    ctx.scope.currentFunction.addBasicBlock(positiveBlock);
+
+    const next = llvm.BasicBlock.create(ctx.llvmContext, "for.end");
+    ctx.scope.currentFunction.addBasicBlock(next);
+
+    if (parent.condition) {
+        builder.createBr(conditionBlock);
+
+        emitCondition(
+            parent.condition,
+            ctx,
+            builder,
+            positiveBlock,
+            next
+        );
+    }
+
+    builder.setInsertionPoint(positiveBlock);
+    passNode(parent.statement, ctx, builder);
+
+    builder.createBr(conditionBlock);
+
+    builder.setInsertionPoint(next);
+}
+
 export function emitCondition(
     condition: ts.Expression,
     ctx: Context,
@@ -442,6 +478,9 @@ export function passStatement(stmt: ts.Statement, ctx: Context, builder: llvm.IR
             break;
         case ts.SyntaxKind.IfStatement:
             passIfStatement(<any>stmt, ctx, builder);
+            break;
+        case ts.SyntaxKind.ForStatement:
+            passForStatement(<any>stmt, ctx, builder);
             break;
         default:
             throw new UnsupportedError(
