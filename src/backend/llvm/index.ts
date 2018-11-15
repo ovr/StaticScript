@@ -73,8 +73,6 @@ export function passForStatement(parent: ts.ForStatement, ctx: Context, builder:
     const conditionBlock = llvm.BasicBlock.create(ctx.llvmContext, "for.condition");
     ctx.scope.currentFunction.addBasicBlock(conditionBlock);
 
-    builder.createBr(conditionBlock);
-
     const positiveBlock = llvm.BasicBlock.create(ctx.llvmContext, "for.true");
     ctx.scope.currentFunction.addBasicBlock(positiveBlock);
 
@@ -83,6 +81,7 @@ export function passForStatement(parent: ts.ForStatement, ctx: Context, builder:
 
     if (parent.condition) {
         builder.createBr(conditionBlock);
+        builder.setInsertionPoint(conditionBlock);
 
         emitCondition(
             parent.condition,
@@ -91,11 +90,18 @@ export function passForStatement(parent: ts.ForStatement, ctx: Context, builder:
             positiveBlock,
             next
         );
+    } else {
+        builder.createBr(next);
     }
 
     builder.setInsertionPoint(positiveBlock);
-    passNode(parent.statement, ctx, builder);
+    passStatement(parent.statement, ctx, builder);
 
+    if (parent.incrementor) {
+        passStatement(<any>parent.incrementor, ctx, builder);
+    }
+
+    // jump again to condition
     builder.createBr(conditionBlock);
 
     builder.setInsertionPoint(next);
@@ -110,7 +116,9 @@ export function emitCondition(
 ) {
     const left = buildFromExpression(condition, ctx, builder);
 
-    const conditionBoolValue = builder.createICmpNE(left, llvm.ConstantInt.get(ctx.llvmContext, 0));
+    const leftInt = builder.createZExt(left, llvm.Type.getInt32Ty(ctx.llvmContext));
+
+    const conditionBoolValue = builder.createICmpNE(leftInt, llvm.ConstantInt.get(ctx.llvmContext, 0));
     builder.createCondBr(conditionBoolValue, positiveBlock, negativeBlock);
 }
 
@@ -183,11 +191,10 @@ function buildFromNumericLiteral(
         return llvm.ConstantFP.get(ctx.llvmContext, parseFloat(value.text));
     }
 
-    const type = nativeType.getType();
     return llvm.ConstantInt.get(
         ctx.llvmContext,
         parseInt(value.text),
-        (<llvm.IntegerType>type).getBitWidth(),
+        (<llvm.IntegerType>nativeType.getType()).getBitWidth(),
         nativeType.isSigned()
     );
 }
@@ -238,12 +245,21 @@ function buildFromBinaryExpression(
             const left = buildFromExpression(expr.left, ctx, builder);
             const right = buildFromExpression(expr.right, ctx, builder);
 
-            const leftInt = builder.createZExt(left, llvm.Type.getInt32Ty(ctx.llvmContext));
-            const rightInt = builder.createZExt(right, llvm.Type.getInt32Ty(ctx.llvmContext));
+            // const leftInt = builder.createZExt(left, llvm.Type.getInt32Ty(ctx.llvmContext));
+            // const rightInt = builder.createZExt(right, llvm.Type.getInt32Ty(ctx.llvmContext));
+
+            // const leftInt = builder.createFPToSI(
+            //     loadIfNeeded(left, builder, ctx),
+            //     llvm.Type.getInt32Ty(ctx.llvmContext)
+            // );
+            // const rightInt = builder.createFPToSI(
+            //     loadIfNeeded(right, builder, ctx),
+            //     llvm.Type.getInt32Ty(ctx.llvmContext)
+            // );
 
             return builder.createFCmpOGT(
-                leftInt,
-                rightInt,
+                loadIfNeeded(left, builder, ctx),
+                loadIfNeeded(right, builder, ctx),
                 'cmpGT'
             );
         }
@@ -251,12 +267,22 @@ function buildFromBinaryExpression(
             const left = buildFromExpression(expr.left, ctx, builder);
             const right = buildFromExpression(expr.right, ctx, builder);
 
-            const leftInt = builder.createZExt(left, llvm.Type.getInt32Ty(ctx.llvmContext));
-            const rightInt = builder.createZExt(right, llvm.Type.getInt32Ty(ctx.llvmContext));
+            // const leftInt = builder.createZExt(left, llvm.Type.getInt32Ty(ctx.llvmContext));
+            // const rightInt = builder.createZExt(right, llvm.Type.getInt32Ty(ctx.llvmContext));
+
+            // const leftInt = builder.createFPToSI(
+            //     loadIfNeeded(left, builder, ctx),
+            //     llvm.Type.getInt32Ty(ctx.llvmContext)
+            // );
+            //
+            // const rightInt = builder.createFPToSI(
+            //     loadIfNeeded(right, builder, ctx),
+            //     llvm.Type.getInt32Ty(ctx.llvmContext)
+            // );
 
             return builder.createFCmpOLT(
-                leftInt,
-                rightInt,
+                loadIfNeeded(left, builder, ctx),
+                loadIfNeeded(right, builder, ctx),
                 'cmpLT'
             );
         }
