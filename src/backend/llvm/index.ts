@@ -205,6 +205,16 @@ function buildFromBinaryExpression(
     builder: llvm.IRBuilder
 ): llvm.Value {
     switch (expr.operatorToken.kind) {
+        case ts.SyntaxKind.EqualsToken: {
+            const left = buildFromExpression(expr.left, ctx, builder);
+            const right = buildFromExpression(expr.right, ctx, builder);
+
+            builder.createStore(
+                right,
+                left,
+                false
+            );
+        }
         case ts.SyntaxKind.PlusToken: {
             const left = buildFromExpression(expr.left, ctx, builder);
             const right = buildFromExpression(expr.right, ctx, builder);
@@ -516,6 +526,9 @@ export function passStatement(stmt: ts.Statement, ctx: Context, builder: llvm.IR
             break;
         case ts.SyntaxKind.ForStatement:
             passForStatement(<any>stmt, ctx, builder);
+            break;
+        case ts.SyntaxKind.BinaryExpression:
+            buildFromBinaryExpression(<any>stmt, ctx, builder);
             break;
         default:
             throw new UnsupportedError(
