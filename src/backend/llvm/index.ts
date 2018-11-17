@@ -333,6 +333,34 @@ function buildFromBinaryExpression(
     }
 }
 
+function buildFromPostfixUnaryExpression(
+    expr: ts.PostfixUnaryExpression,
+    ctx: Context,
+    builder: llvm.IRBuilder
+): llvm.Value {
+    switch (expr.operator) {
+        case ts.SyntaxKind.PlusPlusToken: {
+            const left = buildFromExpression(expr.operand, ctx, builder);
+
+            const next = builder.createFAdd(
+                loadIfNeeded(left, builder, ctx),
+                llvm.ConstantFP.get(ctx.llvmContext, 1)
+            );
+
+            return builder.createStore(
+                next,
+                left,
+                false
+            );
+        }
+        default:
+            throw new UnsupportedError(
+                expr,
+                `Unsupported PostfixUnaryExpression.operator: "${expr.operator}"`
+            );
+    }
+}
+
 function buildCalleFromCallExpression(
     expr: ts.CallExpression,
     ctx: Context,
@@ -464,6 +492,8 @@ function buildFromExpression(block: ts.Expression, ctx: Context, builder: llvm.I
             return buildFromFalseKeyword(<any>block, ctx, builder);
         case ts.SyntaxKind.BinaryExpression:
             return buildFromBinaryExpression(<any>block, ctx, builder);
+        case ts.SyntaxKind.PostfixUnaryExpression:
+            return buildFromPostfixUnaryExpression(<any>block, ctx, builder);
         case ts.SyntaxKind.CallExpression:
             return <any>buildFromCallExpression(<any>block, ctx, builder);
         case ts.SyntaxKind.ExpressionStatement:
