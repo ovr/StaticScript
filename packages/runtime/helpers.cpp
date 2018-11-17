@@ -1,3 +1,4 @@
+#include <cmath>
 #include <stdio.h>
 
 #include "helpers.h"
@@ -24,4 +25,8 @@ LIBRARY_EXPORT void console_log(bool boolean) {
     } else {
         puts("false");
     }
+}
+
+LIBRARY_EXPORT double Math__floor(double number) {
+    return std::floor(number);
 }
