@@ -173,6 +173,10 @@ export function passFunctionDeclaration(parent: ts.FunctionDeclaration, ctx: Con
             passStatement(stmt, ctx, irBuilder);
         }
     }
+
+    if (!block.getTerminator() && returnType.isVoidTy()) {
+        irBuilder.createRetVoid();
+    }
 }
 
 export function buildFromStringValue(node: ts.StringLiteral, ctx: Context, builder: llvm.IRBuilder): llvm.Value {
