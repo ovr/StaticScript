@@ -161,18 +161,7 @@ export function passFunctionDeclaration(parent: ts.FunctionDeclaration, ctx: Con
         throw Error('Function must be declared with return type');
     }
 
-    let returnType = llvm.Type.getVoidTy(ctx.llvmContext);
-
-    switch (parent.type.kind) {
-        case ts.SyntaxKind.NumberKeyword:
-            returnType = llvm.Type.getDoubleTy(ctx.llvmContext);
-            break;
-        default:
-            throw Error(
-                `Function declared with unsupported return type, unexpected "${parent.type.kind}"`
-            );
-    }
-
+    let returnType = NativeTypeResolver.getType(ctx.typeChecker.getTypeFromTypeNode(parent.type), ctx).getType();
     let fnType = llvm.FunctionType.get(returnType, false);
     let fn = llvm.Function.create(fnType, llvm.LinkageTypes.ExternalLinkage, <string>parent.name.escapedText, ctx.llvmModule);
 
