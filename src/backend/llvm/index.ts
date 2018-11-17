@@ -10,6 +10,7 @@ import {RUNTIME_DEFINITION_FILE} from "@static-script/runtime";
 import {LANGUAGE_DEFINITION_FILE} from "../../constants";
 import {CMangler} from "./c.mangler";
 import {ManglerInterface} from "./mangler.interface";
+import {SignatureDeclaration} from "typescript";
 
 export function passReturnStatement(parent: ts.ReturnStatement, ctx: Context, builder: llvm.IRBuilder) {
     if (!parent.expression) {
@@ -375,6 +376,29 @@ function buildFromPostfixUnaryExpression(
     }
 }
 
+
+function mangleNameFromDecleration(
+    declaration: ts.SignatureDeclaration,
+    ctx: Context,
+    mangler: ManglerInterface
+) {
+    if (declaration.kind === ts.SyntaxKind.MethodDeclaration) {
+        const left = ctx.typeChecker.getTypeAtLocation(declaration.parent!) as ts.ObjectType;
+
+        return mangler.getMethodName(
+            <string>left.symbol.escapedName,
+            <string>(<ts.Identifier>declaration.name).escapedText,
+            declaration.parameters
+        );
+    }
+
+    return mangler.getFunctionName(
+        <string>(<ts.Identifier>declaration.name).escapedText,
+        declaration.parameters
+    );
+}
+
+
 function buildCalleFromCallExpression(
     expr: ts.CallExpression,
     ctx: Context,
@@ -386,16 +410,16 @@ function buildCalleFromCallExpression(
             return ctx.signature.get(calleSignature);
         }
 
-        const symbolDeclaration = <ts.SignatureDeclaration>calleSignature.declaration;
-        if (symbolDeclaration.name) {
-            const sourceFile = symbolDeclaration.getSourceFile();
+        const declaration = <ts.SignatureDeclaration>calleSignature.declaration;
+        if (declaration.name) {
+            const sourceFile = declaration.getSourceFile();
 
             if (sourceFile.fileName === RUNTIME_DEFINITION_FILE) {
                 const llvmFunction = declareFunctionFromDefinition(
-                    <ts.FunctionDeclaration>symbolDeclaration,
+                    <ts.FunctionDeclaration>declaration,
                     ctx,
                     builder,
-                    CPPMangler
+                    mangleNameFromDecleration(declaration, ctx, CPPMangler)
                 );
 
                 ctx.signature.set(calleSignature, llvmFunction);
@@ -405,10 +429,10 @@ function buildCalleFromCallExpression(
 
             if (sourceFile.fileName === LANGUAGE_DEFINITION_FILE) {
                 const llvmFunction = declareFunctionFromDefinition(
-                    <ts.FunctionDeclaration>symbolDeclaration,
+                    <ts.FunctionDeclaration>declaration,
                     ctx,
                     builder,
-                    CMangler
+                    mangleNameFromDecleration(declaration, ctx, CMangler)
                 );
 
 
@@ -449,7 +473,7 @@ function declareFunctionFromDefinition(
     stmt: ts.FunctionDeclaration,
     ctx: Context,
     builder: llvm.IRBuilder,
-    mangler: ManglerInterface
+    name: string
 ): llvm.Function {
     let fnType = llvm.FunctionType.get(
         stmt.type ? NativeTypeResolver.getType(ctx.typeChecker.getTypeFromTypeNode(stmt.type), ctx).getType() : llvm.Type.getVoidTy(ctx.llvmContext),
@@ -469,7 +493,7 @@ function declareFunctionFromDefinition(
     return llvm.Function.create(
         fnType,
         llvm.LinkageTypes.ExternalLinkage,
-        mangler.getFunctionName(<string>stmt.name.escapedText, stmt.parameters),
+        name,
         ctx.llvmModule
     );
 }
