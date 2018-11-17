@@ -356,9 +356,9 @@ function buildFromPostfixUnaryExpression(
         case ts.SyntaxKind.MinusMinusToken: {
             const left = buildFromExpression(expr.operand, ctx, builder);
 
-            const next = builder.createFAdd(
+            const next = builder.createFSub(
                 loadIfNeeded(left, builder, ctx),
-                llvm.ConstantFP.get(ctx.llvmContext, -1)
+                llvm.ConstantFP.get(ctx.llvmContext, 1)
             );
 
             return builder.createStore(
