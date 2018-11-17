@@ -107,6 +107,35 @@ export function passForStatement(parent: ts.ForStatement, ctx: Context, builder:
     builder.setInsertionPoint(next);
 }
 
+export function passDoStatement(parent: ts.DoStatement, ctx: Context, builder: llvm.IRBuilder) {
+    const conditionBlock = llvm.BasicBlock.create(ctx.llvmContext, "for.condition");
+    ctx.scope.currentFunction.addBasicBlock(conditionBlock);
+
+    const positiveBlock = llvm.BasicBlock.create(ctx.llvmContext, "for.true");
+    ctx.scope.currentFunction.addBasicBlock(positiveBlock);
+
+    const next = llvm.BasicBlock.create(ctx.llvmContext, "for.end");
+    ctx.scope.currentFunction.addBasicBlock(next);
+
+    builder.createBr(positiveBlock);
+    builder.setInsertionPoint(positiveBlock);
+
+    passStatement(<any>parent.statement, ctx, builder);
+
+    builder.createBr(conditionBlock);
+    builder.setInsertionPoint(conditionBlock);
+
+    emitCondition(
+        parent.expression,
+        ctx,
+        builder,
+        positiveBlock,
+        next
+    );
+
+    builder.setInsertionPoint(next);
+}
+
 export function emitCondition(
     condition: ts.Expression,
     ctx: Context,
@@ -526,6 +555,9 @@ export function passStatement(stmt: ts.Statement, ctx: Context, builder: llvm.IR
             break;
         case ts.SyntaxKind.ForStatement:
             passForStatement(<any>stmt, ctx, builder);
+            break;
+        case ts.SyntaxKind.DoStatement:
+            passDoStatement(<any>stmt, ctx, builder);
             break;
         case ts.SyntaxKind.BinaryExpression:
             buildFromBinaryExpression(<any>stmt, ctx, builder);
