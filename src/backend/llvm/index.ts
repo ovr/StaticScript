@@ -353,6 +353,20 @@ function buildFromPostfixUnaryExpression(
                 false
             );
         }
+        case ts.SyntaxKind.MinusMinusToken: {
+            const left = buildFromExpression(expr.operand, ctx, builder);
+
+            const next = builder.createFAdd(
+                loadIfNeeded(left, builder, ctx),
+                llvm.ConstantFP.get(ctx.llvmContext, -1)
+            );
+
+            return builder.createStore(
+                next,
+                left,
+                false
+            );
+        }
         default:
             throw new UnsupportedError(
                 expr,
