@@ -16,4 +16,5 @@ declare class Math {
     static round(value: number): number;
     static sqrt(value: number): number;
     static pow(value: number, power: number): number;
+    static random(): number;
 }

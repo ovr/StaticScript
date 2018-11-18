@@ -11,5 +11,6 @@ LIBRARY_EXPORT double Math__pow(double number, double power);
 LIBRARY_EXPORT double Math__sqrt(double number);
 LIBRARY_EXPORT double Math__floor(double number);
 LIBRARY_EXPORT double Math__round(double number);
+LIBRARY_EXPORT double Math__random();
 
 #endif //HLVM_RUNTIME_MATH_H
