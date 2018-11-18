@@ -11,7 +11,9 @@ declare function console_log(value: boolean): void;
 declare class Math {
     /**
      * Returns the greatest integer less than or equal to its numeric argument.
-     * @param x A numeric expression.
      */
     static floor(value: number): number;
+    static round(value: number): number;
+    static sqrt(value: number): number;
+    static pow(value: number, power: number): number;
 }
