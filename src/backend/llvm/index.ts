@@ -649,6 +649,9 @@ export function passStatement(stmt: ts.Statement, ctx: Context, builder: llvm.IR
         case ts.SyntaxKind.BinaryExpression:
             buildFromBinaryExpression(<any>stmt, ctx, builder);
             break;
+        case ts.SyntaxKind.PostfixUnaryExpression:
+            buildFromPostfixUnaryExpression(<any>stmt, ctx, builder);
+            break;
         default:
             throw new UnsupportedError(
                 stmt,
