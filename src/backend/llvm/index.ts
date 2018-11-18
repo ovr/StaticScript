@@ -81,7 +81,7 @@ export function passForStatement(parent: ts.ForStatement, ctx: Context, builder:
         passStatement(<any>parent.initializer, ctx, builder);
     }
 
-    const conditionBlock = llvm.BasicBlock.create(ctx.llvmContext, "for.condition");
+    const conditionBlock = llvm.BasicBlock.create(ctx.llvmContext, "for.condition", ctx.scope.currentFunction);
     ctx.scope.currentFunction.addBasicBlock(conditionBlock);
 
     const positiveBlock = llvm.BasicBlock.create(ctx.llvmContext, "for.true");
@@ -205,11 +205,15 @@ export function passFunctionDeclaration(parent: ts.FunctionDeclaration, ctx: Con
         }
     }
 
+    ctx.scope.currentFunction = fn;
+
     if (parent.body) {
         for (const stmt of parent.body.statements) {
             passStatement(stmt, ctx, irBuilder);
         }
     }
+
+    ctx.scope.currentFunction = null;
 
     if (!block.getTerminator() && returnType.isVoidTy()) {
         irBuilder.createRetVoid();
