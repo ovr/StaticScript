@@ -209,7 +209,6 @@ export function passFunctionDeclaration(parent: ts.FunctionDeclaration, ctx: Con
 export function buildFromStringValue(node: ts.StringLiteral, ctx: Context, builder: llvm.IRBuilder): llvm.Value {
     return builder.createGlobalStringPtr(
         node.text,
-        'tmp'
     );
 }
 
