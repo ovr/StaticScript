@@ -162,11 +162,38 @@ export function passFunctionDeclaration(parent: ts.FunctionDeclaration, ctx: Con
     }
 
     let returnType = NativeTypeResolver.getType(ctx.typeChecker.getTypeFromTypeNode(parent.type), ctx).getType();
-    let fnType = llvm.FunctionType.get(returnType, false);
+    let fnType = llvm.FunctionType.get(
+        returnType,
+        parent.parameters.map((parameter) => {
+            if (parameter.type) {
+                const nativeType = NativeTypeResolver.getType(ctx.typeChecker.getTypeFromTypeNode(parameter.type), ctx);
+                return nativeType.getType();
+            }
+
+            throw new UnsupportedError(
+                parameter,
+                `Unsupported parameter`
+            );
+        }),
+        false
+    );
     let fn = llvm.Function.create(fnType, llvm.LinkageTypes.ExternalLinkage, <string>parent.name.escapedText, ctx.llvmModule);
+
 
     let block = llvm.BasicBlock.create(ctx.llvmContext, 'Entry', fn);
     let irBuilder = new llvm.IRBuilder(block);
+
+    for (const argument of fn.getArguments()) {
+        const parameter = parent.parameters[argument.argumentNumber];
+        if (parameter) {
+            ctx.scope.variables.set(<string>(<ts.Identifier>parameter.name).escapedText, argument);
+        } else {
+            throw new UnsupportedError(
+                parameter,
+                `Unsupported parameter`
+            );
+        }
+    }
 
     if (parent.body) {
         for (const stmt of parent.body.statements) {
