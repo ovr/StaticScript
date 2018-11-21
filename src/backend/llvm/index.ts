@@ -26,7 +26,6 @@ export function passReturnStatement(parent: ts.ReturnStatement, ctx: Context, bu
         parent.expression,
         ctx,
         builder,
-
     );
     if (left) {
         return builder.createRet(
@@ -42,14 +41,14 @@ export function passReturnStatement(parent: ts.ReturnStatement, ctx: Context, bu
 
 export function passIfStatement(parent: ts.IfStatement, ctx: Context, builder: llvm.IRBuilder) {
     const positiveBlock = llvm.BasicBlock.create(ctx.llvmContext, "if.true");
-    ctx.scope.currentFunction.addBasicBlock(positiveBlock);
+    ctx.scope.enclosureFunction.llvmFunction.addBasicBlock(positiveBlock);
 
     const next = llvm.BasicBlock.create(ctx.llvmContext, "if.end");
-    ctx.scope.currentFunction.addBasicBlock(next);
+    ctx.scope.enclosureFunction.llvmFunction.addBasicBlock(next);
 
     if (parent.elseStatement) {
         const negativeBlock = llvm.BasicBlock.create(ctx.llvmContext, "if.false");
-        ctx.scope.currentFunction.addBasicBlock(negativeBlock);
+        ctx.scope.enclosureFunction.llvmFunction.addBasicBlock(negativeBlock);
 
         emitCondition(
             parent.expression,
@@ -86,14 +85,14 @@ export function passForStatement(parent: ts.ForStatement, ctx: Context, builder:
         passStatement(<any>parent.initializer, ctx, builder);
     }
 
-    const conditionBlock = llvm.BasicBlock.create(ctx.llvmContext, "for.condition", ctx.scope.currentFunction);
-    ctx.scope.currentFunction.addBasicBlock(conditionBlock);
+    const conditionBlock = llvm.BasicBlock.create(ctx.llvmContext, "for.condition", ctx.scope.enclosureFunction.llvmFunction);
+    ctx.scope.enclosureFunction.llvmFunction.addBasicBlock(conditionBlock);
 
     const positiveBlock = llvm.BasicBlock.create(ctx.llvmContext, "for.true");
-    ctx.scope.currentFunction.addBasicBlock(positiveBlock);
+    ctx.scope.enclosureFunction.llvmFunction.addBasicBlock(positiveBlock);
 
     const next = llvm.BasicBlock.create(ctx.llvmContext, "for.end");
-    ctx.scope.currentFunction.addBasicBlock(next);
+    ctx.scope.enclosureFunction.llvmFunction.addBasicBlock(next);
 
     if (parent.condition) {
         builder.createBr(conditionBlock);
@@ -125,13 +124,13 @@ export function passForStatement(parent: ts.ForStatement, ctx: Context, builder:
 
 export function passDoStatement(parent: ts.DoStatement, ctx: Context, builder: llvm.IRBuilder) {
     const conditionBlock = llvm.BasicBlock.create(ctx.llvmContext, "for.condition");
-    ctx.scope.currentFunction.addBasicBlock(conditionBlock);
+    ctx.scope.enclosureFunction.llvmFunction.addBasicBlock(conditionBlock);
 
     const positiveBlock = llvm.BasicBlock.create(ctx.llvmContext, "for.true");
-    ctx.scope.currentFunction.addBasicBlock(positiveBlock);
+    ctx.scope.enclosureFunction.llvmFunction.addBasicBlock(positiveBlock);
 
     const next = llvm.BasicBlock.create(ctx.llvmContext, "for.end");
-    ctx.scope.currentFunction.addBasicBlock(next);
+    ctx.scope.enclosureFunction.llvmFunction.addBasicBlock(next);
 
     builder.createBr(positiveBlock);
     builder.setInsertionPoint(positiveBlock);
@@ -210,7 +209,14 @@ export function passFunctionDeclaration(parent: ts.FunctionDeclaration, ctx: Con
         }
     }
 
-    ctx.scope.currentFunction = fn;
+
+    // Store to return back
+    const enclosureFnStore = ctx.scope.enclosureFunction;
+
+    ctx.scope.enclosureFunction = {
+        llvmFunction: fn,
+        declaration: parent
+    };
 
     if (parent.body) {
         for (const stmt of parent.body.statements) {
@@ -218,7 +224,8 @@ export function passFunctionDeclaration(parent: ts.FunctionDeclaration, ctx: Con
         }
     }
 
-    ctx.scope.currentFunction = null;
+    // store back
+    ctx.scope.enclosureFunction = enclosureFnStore;
 
     if (returnType.isVoidTy()) {
         if (block.getTerminator()) {
@@ -727,7 +734,10 @@ export function generateModuleFromProgram(program: ts.Program): llvm.Module {
     const block = llvm.BasicBlock.create(ctx.llvmContext, "Entry", mainFn);
     const builder = new llvm.IRBuilder(block);
 
-    ctx.scope.currentFunction = mainFn;
+    ctx.scope.enclosureFunction = {
+        llvmFunction: mainFn,
+        declaration: null
+    };
 
     for (const sourceFile of program.getSourceFiles()) {
         if (!sourceFile.isDeclarationFile) {
