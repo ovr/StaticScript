@@ -26,6 +26,12 @@ export function passReturnStatement(parent: ts.ReturnStatement, ctx: Context, bu
         parent.expression,
         ctx,
         builder,
+        ctx.scope.enclosureFunction.declaration ? (
+            NativeTypeResolver.getType(
+                ctx.typeChecker.getTypeFromTypeNode(ctx.scope.enclosureFunction.declaration.type),
+                ctx
+            )
+        ) : undefined
     );
     if (left) {
         return builder.createRet(
