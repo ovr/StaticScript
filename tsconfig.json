@@ -2,10 +2,12 @@
   "compilerOptions": {
     "target": "es2018",
     "module": "commonjs",
-    "outDir": "./build",
-    "rootDir": "./src",
     "sourceMap": true
   },
+  "include": [
+    "src",
+    "tests/runner.ts"
+  ],
   "exclude": [
     "sandbox",
     "packages",

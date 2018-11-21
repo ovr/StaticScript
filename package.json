@@ -5,7 +5,9 @@
   "main": "index.js",
   "typings": "staticscript.d.ts",
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "snapshots": "node tests/runner.js",
+    "test": "npm run snapshots"
   },
   "author": "Dmitry Patsura <talk@dmtry.me>",
   "license": "MIT",
@@ -23,7 +25,7 @@
     "commander": "^2.19.0"
   },
   "dependencies": {
-    "@static-script/runtime": "^0.5.0",
+    "@static-script/runtime": "^0.6.1",
     "llvm-node": "github:MichaReiser/llvm-node#master",
     "typescript": "^3.1.1"
   }
