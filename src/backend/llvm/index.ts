@@ -10,7 +10,6 @@ import {RUNTIME_DEFINITION_FILE} from "@static-script/runtime";
 import {LANGUAGE_DEFINITION_FILE} from "../../constants";
 import {CMangler} from "./c.mangler";
 import {ManglerInterface} from "./mangler.interface";
-import {SignatureDeclaration} from "typescript";
 
 export function passReturnStatement(parent: ts.ReturnStatement, ctx: Context, builder: llvm.IRBuilder) {
     if (!parent.expression) {
@@ -23,9 +22,15 @@ export function passReturnStatement(parent: ts.ReturnStatement, ctx: Context, bu
         );
     }
 
-    if (parent.expression.kind === ts.SyntaxKind.BinaryExpression) {
+    const left = buildFromExpression(
+        parent.expression,
+        ctx,
+        builder,
+
+    );
+    if (left) {
         return builder.createRet(
-            buildFromBinaryExpression(<any>parent.expression, ctx, builder)
+            left
         );
     }
 
