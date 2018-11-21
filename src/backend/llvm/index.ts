@@ -215,8 +215,15 @@ export function passFunctionDeclaration(parent: ts.FunctionDeclaration, ctx: Con
 
     ctx.scope.currentFunction = null;
 
-    if (!block.getTerminator() && returnType.isVoidTy()) {
-        irBuilder.createRetVoid();
+    if (returnType.isVoidTy()) {
+        if (block.getTerminator()) {
+            irBuilder.createRetVoid();
+        }
+
+        const nextBlock = irBuilder.getInsertBlock();
+        if (!nextBlock.getTerminator()) {
+            irBuilder.createRetVoid();
+        }
     }
 }
 
