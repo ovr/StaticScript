@@ -18,7 +18,11 @@ export function passReturnStatement(parent: ts.ReturnStatement, ctx: Context, bu
 
     if (parent.expression.kind === ts.SyntaxKind.Identifier) {
         return builder.createRet(
-            buildFromIdentifier(<any>parent.expression, ctx, builder)
+            loadIfNeeded(
+                buildFromIdentifier(<any>parent.expression, ctx, builder),
+                builder,
+                ctx
+            )
         );
     }
 
@@ -35,7 +39,7 @@ export function passReturnStatement(parent: ts.ReturnStatement, ctx: Context, bu
     );
     if (left) {
         return builder.createRet(
-            left
+            loadIfNeeded(left, builder, ctx)
         );
     }
 
