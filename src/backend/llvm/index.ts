@@ -297,7 +297,7 @@ function buildFromBinaryExpression(
             const left = buildFromExpression(expr.left, ctx, builder);
             const right = buildFromExpression(expr.right, ctx, builder);
 
-            builder.createStore(
+            return builder.createStore(
                 right,
                 left,
                 false
