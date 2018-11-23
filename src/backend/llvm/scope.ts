@@ -1,8 +1,9 @@
 
 import * as llvm from "llvm-node";
 import {FunctionDeclaration} from "typescript";
+import {Value} from "./value";
 
-export class VariablesTable extends Map<string, llvm.Value> {
+export class VariablesTable extends Map<string, Value> {
 
 }
 

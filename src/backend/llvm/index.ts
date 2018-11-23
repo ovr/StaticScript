@@ -1,4 +1,3 @@
-
 import * as ts from "typescript";
 import * as llvm from 'llvm-node';
 import {CPPMangler} from "./cpp.mangler";
@@ -10,6 +9,7 @@ import {RUNTIME_DEFINITION_FILE} from "@static-script/runtime";
 import {LANGUAGE_DEFINITION_FILE} from "../../constants";
 import {CMangler} from "./c.mangler";
 import {ManglerInterface} from "./mangler.interface";
+import {Value, ValueTypeEnum} from "./value";
 
 export function passReturnStatement(parent: ts.ReturnStatement, ctx: Context, builder: llvm.IRBuilder) {
     if (!parent.expression) {
@@ -170,7 +170,7 @@ export function emitCondition(
 ) {
     const left = buildFromExpression(condition, ctx, builder);
 
-    const leftInt = builder.createZExt(left, llvm.Type.getInt32Ty(ctx.llvmContext));
+    const leftInt = builder.createZExt(left.llvmValue, llvm.Type.getInt32Ty(ctx.llvmContext));
 
     const conditionBoolValue = builder.createICmpNE(leftInt, llvm.ConstantInt.get(ctx.llvmContext, 0));
     builder.createCondBr(conditionBoolValue, positiveBlock, negativeBlock);
@@ -210,7 +210,7 @@ export function passFunctionDeclaration(parent: ts.FunctionDeclaration, ctx: Con
     for (const argument of fn.getArguments()) {
         const parameter = parent.parameters[argument.argumentNumber];
         if (parameter) {
-            ctx.scope.variables.set(<string>(<ts.Identifier>parameter.name).escapedText, argument);
+            ctx.scope.variables.set(<string>(<ts.Identifier>parameter.name).escapedText, new Value(argument));
         } else {
             throw new UnsupportedError(
                 parameter,
@@ -249,27 +249,36 @@ export function passFunctionDeclaration(parent: ts.FunctionDeclaration, ctx: Con
     }
 }
 
-export function buildFromStringValue(node: ts.StringLiteral, ctx: Context, builder: llvm.IRBuilder): llvm.Value {
-    return builder.createGlobalStringPtr(
-        node.text,
+export function buildFromStringValue(node: ts.StringLiteral, ctx: Context, builder: llvm.IRBuilder): Value {
+    return new Value(
+        builder.createGlobalStringPtr(
+            node.text,
+        ),
+        ValueTypeEnum.STRING
     );
 }
 
-export function buildFromTrueKeyword(node: ts.BooleanLiteral, ctx: Context, builder: llvm.IRBuilder): llvm.Value {
-    return llvm.ConstantInt.get(
-        ctx.llvmContext,
-        1,
-        1,
-        false
+export function buildFromTrueKeyword(node: ts.BooleanLiteral, ctx: Context, builder: llvm.IRBuilder): Value {
+    return new Value(
+        llvm.ConstantInt.get(
+            ctx.llvmContext,
+            1,
+            1,
+            false
+        ),
+        ValueTypeEnum.BOOLEAN
     );
 }
 
-export function buildFromFalseKeyword(node: ts.BooleanLiteral, ctx: Context, builder: llvm.IRBuilder): llvm.Value {
-    return llvm.ConstantInt.get(
-        ctx.llvmContext,
-        0,
-        1,
-        false
+export function buildFromFalseKeyword(node: ts.BooleanLiteral, ctx: Context, builder: llvm.IRBuilder): Value {
+    return new Value(
+        llvm.ConstantInt.get(
+            ctx.llvmContext,
+            0,
+            1,
+            false
+        ),
+        ValueTypeEnum.BOOLEAN
     );
 }
 
@@ -278,16 +287,21 @@ function buildFromNumericLiteral(
     ctx: Context,
     builder: llvm.IRBuilder,
     nativeType?: NativeType
-): llvm.Value {
+): Value {
     if (!nativeType || nativeType.getType().isDoubleTy()) {
-        return llvm.ConstantFP.get(ctx.llvmContext, parseFloat(value.text));
+        return new Value(
+            llvm.ConstantFP.get(ctx.llvmContext, parseFloat(value.text)),
+            ValueTypeEnum.DOUBLE
+        );
     }
 
-    return llvm.ConstantInt.get(
-        ctx.llvmContext,
-        parseInt(value.text),
-        (<llvm.IntegerType>nativeType.getType()).getBitWidth(),
-        nativeType.isSigned()
+    return new Value(
+        llvm.ConstantInt.get(
+            ctx.llvmContext,
+            parseInt(value.text),
+            (<llvm.IntegerType>nativeType.getType()).getBitWidth(),
+            nativeType.isSigned()
+        ),
     );
 }
 
@@ -295,52 +309,62 @@ function buildFromBinaryExpression(
     expr: ts.BinaryExpression,
     ctx: Context,
     builder: llvm.IRBuilder
-): llvm.Value {
+): Value {
     switch (expr.operatorToken.kind) {
         case ts.SyntaxKind.EqualsToken: {
             const left = buildFromExpression(expr.left, ctx, builder);
             const right = buildFromExpression(expr.right, ctx, builder);
 
-            return builder.createStore(
-                right,
-                left,
-                false
+            return new Value(
+                builder.createStore(
+                    right.llvmValue,
+                    left.llvmValue,
+                    false
+                )
             );
         }
         case ts.SyntaxKind.PlusToken: {
             const left = buildFromExpression(expr.left, ctx, builder);
             const right = buildFromExpression(expr.right, ctx, builder);
 
-            return builder.createFAdd(
-                loadIfNeeded(left, builder, ctx),
-                loadIfNeeded(right, builder, ctx)
+            return new Value(
+                builder.createFAdd(
+                    loadIfNeeded(left, builder, ctx),
+                    loadIfNeeded(right, builder, ctx)
+                )
             );
         }
         case ts.SyntaxKind.MinusToken: {
             const left = buildFromExpression(expr.left, ctx, builder);
             const right = buildFromExpression(expr.right, ctx, builder);
 
-            return builder.createFSub(
-                loadIfNeeded(left, builder, ctx),
-                loadIfNeeded(right, builder, ctx)
+            return new Value(
+                builder.createFSub(
+                    loadIfNeeded(left, builder, ctx),
+                    loadIfNeeded(right, builder, ctx)
+                )
             );
         }
         case ts.SyntaxKind.AsteriskToken: {
             const left = buildFromExpression(expr.left, ctx, builder);
             const right = buildFromExpression(expr.right, ctx, builder);
 
-            return builder.createFMul(
-                loadIfNeeded(left, builder, ctx),
-                loadIfNeeded(right, builder, ctx)
+            return new Value(
+                builder.createFMul(
+                    loadIfNeeded(left, builder, ctx),
+                    loadIfNeeded(right, builder, ctx)
+                )
             );
         }
         case ts.SyntaxKind.SlashToken: {
             const left = buildFromExpression(expr.left, ctx, builder);
             const right = buildFromExpression(expr.right, ctx, builder);
 
-            return builder.createFDiv(
-                loadIfNeeded(left, builder, ctx),
-                loadIfNeeded(right, builder, ctx)
+            return new Value(
+                builder.createFDiv(
+                    loadIfNeeded(left, builder, ctx),
+                    loadIfNeeded(right, builder, ctx)
+                )
             );
         }
         case ts.SyntaxKind.GreaterThanToken: {
@@ -359,10 +383,13 @@ function buildFromBinaryExpression(
             //     llvm.Type.getInt32Ty(ctx.llvmContext)
             // );
 
-            return builder.createFCmpOGT(
-                loadIfNeeded(left, builder, ctx),
-                loadIfNeeded(right, builder, ctx),
-                'cmpGT'
+            return new Value(
+                builder.createFCmpOGT(
+                    loadIfNeeded(left, builder, ctx),
+                    loadIfNeeded(right, builder, ctx),
+                    'cmpGT'
+                ),
+                ValueTypeEnum.BOOLEAN
             );
         }
         case ts.SyntaxKind.LessThanToken: {
@@ -382,10 +409,13 @@ function buildFromBinaryExpression(
             //     llvm.Type.getInt32Ty(ctx.llvmContext)
             // );
 
-            return builder.createFCmpOLT(
-                loadIfNeeded(left, builder, ctx),
-                loadIfNeeded(right, builder, ctx),
-                'cmpLT'
+            return new Value(
+                builder.createFCmpOLT(
+                    loadIfNeeded(left, builder, ctx),
+                    loadIfNeeded(right, builder, ctx),
+                    'cmpLT'
+                ),
+                ValueTypeEnum.BOOLEAN
             );
         }
         default:
@@ -400,7 +430,7 @@ function buildFromPostfixUnaryExpression(
     expr: ts.PostfixUnaryExpression,
     ctx: Context,
     builder: llvm.IRBuilder
-): llvm.Value {
+): Value {
     switch (expr.operator) {
         case ts.SyntaxKind.PlusPlusToken: {
             const left = buildFromExpression(expr.operand, ctx, builder);
@@ -410,10 +440,12 @@ function buildFromPostfixUnaryExpression(
                 llvm.ConstantFP.get(ctx.llvmContext, 1)
             );
 
-            return builder.createStore(
-                next,
-                left,
-                false
+            return new Value(
+                builder.createStore(
+                    next,
+                    left.llvmValue,
+                    false
+                )
             );
         }
         case ts.SyntaxKind.MinusMinusToken: {
@@ -424,10 +456,12 @@ function buildFromPostfixUnaryExpression(
                 llvm.ConstantFP.get(ctx.llvmContext, 1)
             );
 
-            return builder.createStore(
-                next,
-                left,
-                false
+            return new Value(
+                builder.createStore(
+                    next,
+                    left.llvmValue,
+                    false
+                )
             );
         }
         default:
@@ -505,7 +539,7 @@ function buildCalleFromCallExpression(
         }
     }
 
-    return buildFromExpression(expr.expression, ctx, builder);
+    return buildFromExpression(expr.expression, ctx, builder).llvmValue;
 }
 
 function buildFromCallExpression(
@@ -522,7 +556,7 @@ function buildFromCallExpression(
     }
 
     const args = expr.arguments.map((expr) => {
-        return buildFromExpression(<any>expr, ctx, builder);
+        return buildFromExpression(<any>expr, ctx, builder).llvmValue;
     });
 
     return builder.createCall(
@@ -560,7 +594,7 @@ function declareFunctionFromDefinition(
     );
 }
 
-function buildFromIdentifier(identifier: ts.Identifier, ctx: Context, builder: llvm.IRBuilder): llvm.Value {
+function buildFromIdentifier(identifier: ts.Identifier, ctx: Context, builder: llvm.IRBuilder): Value {
     const variable = ctx.scope.variables.get(<string>identifier.escapedText);
     if (variable) {
         return variable;
@@ -568,7 +602,7 @@ function buildFromIdentifier(identifier: ts.Identifier, ctx: Context, builder: l
 
     const fn = ctx.llvmModule.getFunction(<string>identifier.escapedText);
     if (fn) {
-        return fn;
+        return new Value(fn);
     }
 
     throw new UnsupportedError(
@@ -578,7 +612,7 @@ function buildFromIdentifier(identifier: ts.Identifier, ctx: Context, builder: l
 }
 
 
-function buildFromExpression(block: ts.Expression, ctx: Context, builder: llvm.IRBuilder, nativeType?: NativeType): llvm.Value {
+function buildFromExpression(block: ts.Expression, ctx: Context, builder: llvm.IRBuilder, nativeType?: NativeType): Value {
     switch (block.kind) {
         case ts.SyntaxKind.Identifier:
             return buildFromIdentifier(<any>block, ctx, builder);
@@ -628,12 +662,12 @@ export function passVariableDeclaration(block: ts.VariableDeclaration, ctx: Cont
             );
 
             builder.createStore(
-                defaultValue,
+                defaultValue.llvmValue,
                 allocate,
                 false
             );
 
-            ctx.scope.variables.set(<string>block.name.escapedText, allocate);
+            ctx.scope.variables.set(<string>block.name.escapedText, new Value(allocate));
         }
 
         return;
@@ -703,12 +737,12 @@ export function passStatement(stmt: ts.Statement, ctx: Context, builder: llvm.IR
     }
 }
 
-function loadIfNeeded(value: llvm.Value, builder: llvm.IRBuilder, ctx: Context): llvm.Value {
-    if (value.type.isPointerTy()) {
-        return builder.createLoad(value);
+function loadIfNeeded(value: Value, builder: llvm.IRBuilder, ctx: Context): llvm.Value {
+    if (value.llvmValue.type.isPointerTy()) {
+        return builder.createLoad(value.llvmValue);
     }
 
-    return value;
+    return value.llvmValue;
 }
 
 function passBlockStatement(node: ts.Block, ctx: Context, builder: llvm.IRBuilder) {
