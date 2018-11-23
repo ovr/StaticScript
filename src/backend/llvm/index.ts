@@ -738,7 +738,7 @@ export function passStatement(stmt: ts.Statement, ctx: Context, builder: llvm.IR
 }
 
 function loadIfNeeded(value: Value, builder: llvm.IRBuilder, ctx: Context): llvm.Value {
-    if (value.llvmValue.type.isPointerTy()) {
+    if (value.llvmValue.type.isPointerTy() && !value.isString()) {
         return builder.createLoad(value.llvmValue);
     }
 
