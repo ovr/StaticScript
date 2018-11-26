@@ -1,0 +1,24 @@
+language: node_js
+
+node_js:
+  - "11"
+  - "10"
+  - "9"
+
+env:
+  matrix:
+    - LLVM_DEB="deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-4.0 main" LLVM_VERSION=4.0
+    - LLVM_DEB="deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-5.0 main" LLVM_VERSION=5.0
+    - LLVM_DEB="deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-6.0 main" LLVM_VERSION=6.0
+    - LLVM_DEB="deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-7 main" LLVM_VERSION=7
+    - LLVM_DEB="deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty main" LLVM_VERSION=8
+
+before_install:
+  - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
+  - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
+  - echo $LLVM_DEB | sudo tee -a /etc/apt/sources.list
+  - apt update -qq
+  - apt install libedit-dev llvm-$LLVM_VERSION llvm-$LLVM_VERSION-dev
+  - npm install
+  - npm run build
+  - npm run snapshots
