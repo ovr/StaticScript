@@ -14,14 +14,16 @@ import {execFileSync} from "child_process";
 interface CommandLineArguments {
     args: string[];
     printIR?: boolean;
-    outputFile?: boolean;
+    outputFile?: string;
+    optimizationLevel?: string;
 }
 
 function parseCommandLine(): CommandLineArguments {
     cli
         .version('next')
-        .option('-ir, --printIR', 'Print IR')
-        .option('-o, --outputFile', 'Name of the executable file')
+        .option('-ir, --printIR', 'Print IR', false)
+        .option('-f, --outputFile <n>', 'Name of the executable file', 'main')
+        .option('-o, --optimizationLevel <n>', 'Optimization level', 3)
         .parse(process.argv);
 
     return cli as any as CommandLineArguments;
@@ -41,8 +43,8 @@ const files = cliOptions.args;
 
 const host = ts.createCompilerHost(options);
 const program = ts.createProgram(files, options, host);
-const diagnostics = ts.getPreEmitDiagnostics(program);
 
+const diagnostics = ts.getPreEmitDiagnostics(program);
 if (diagnostics.length) {
     const format = ts.formatDiagnosticsWithColorAndContext(diagnostics, DiagnosticHostInstance);
     console.log(format);
@@ -67,29 +69,25 @@ try {
         mkdirSync(outputPath);
     }
 
-    try {
-        llvm.writeBitcodeToFile(llvmModule, path.join(outputPath, 'main.bc'));
+    llvm.writeBitcodeToFile(llvmModule, path.join(outputPath, 'main.bc'));
 
-        const optimizationLevel = "-O3";
+    const optimizationLevel = `-O${cliOptions.optimizationLevel}`;
 
-        execFileSync('llc', [
-            optimizationLevel,
-            '-filetype=obj', path.join(outputPath, 'main.bc'),
-            '-o', path.join(outputPath, 'main.o'),
-        ]);
-        execFileSync("cc", [
-            optimizationLevel,
-            path.join(outputPath, 'main.o'),
-            RUNTIME_ARCHIVE_FILE,
-            '-o', path.join(outputPath, 'main'),
-            '-lstdc++',
-            '-std=c++11',
-            '-Werror',
-            '-v',
-        ]);
-    } finally {
-        // unlinkSync(outputPath);
-    }
+    execFileSync('llc', [
+        optimizationLevel,
+        '-filetype=obj', path.join(outputPath, 'main.bc'),
+        '-o', path.join(outputPath, 'main.o'),
+    ]);
+    execFileSync("cc", [
+        optimizationLevel,
+        path.join(outputPath, 'main.o'),
+        RUNTIME_ARCHIVE_FILE,
+        '-o', path.join(outputPath, cliOptions.outputFile),
+        '-lstdc++',
+        '-std=c++11',
+        '-Werror',
+        '-v',
+    ]);
 } catch (e) {
     if (e instanceof UnsupportedError) {
         console.log(ts.formatDiagnostic(e.toDiagnostic(), DiagnosticHostInstance));
