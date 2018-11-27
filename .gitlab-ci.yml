@@ -1,0 +1,24 @@
+
+stages:
+  - tests
+
+.run_tests_template: &run_tests
+  stage: tests
+  tags:
+    - docker
+  script:
+    - npm ci
+    - npm run build
+    - npm run test
+
+node-11-llvm-6:
+  image: registry.gitlab.com/ovr/staticscript:node-11-llvm-6
+  <<: *run_tests
+
+node-11-llvm-7:
+  image: registry.gitlab.com/ovr/staticscript:node-11-llvm-7
+  <<: *run_tests
+
+node-11-llvm-8:
+  image: registry.gitlab.com/ovr/staticscript:node-11-llvm-8
+  <<: *run_tests
