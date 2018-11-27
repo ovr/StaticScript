@@ -79,7 +79,7 @@ try {
         '-filetype=obj', path.join(outputPath, 'main.bc'),
         '-o', path.join(outputPath, 'main.o'),
     ]);
-    execFileSync("cc", [
+    execFileSync("c++", [
         optimizationLevel,
         path.join(outputPath, 'main.o'),
         RUNTIME_ARCHIVE_FILE,
