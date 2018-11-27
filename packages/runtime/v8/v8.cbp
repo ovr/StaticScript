@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6"/>
+	<Project>
+		<Option title="v8"/>
+		<Option makefile_is_custom="1"/>
+		<Option compiler="gcc"/>
+		<Option virtualFolders="CMake Files\;CMake Files\v8\;"/>
+		<Build>
+			<Target title="all">
+				<Option working_dir="/Users/ovr/projects/ovr/hlvm/packages/runtime/v8"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j12 -f &quot;/Users/ovr/projects/ovr/hlvm/packages/runtime/v8/Makefile&quot;  VERBOSE=1 all"/>
+					<CompileFile command="/usr/bin/make -j12 -f &quot;/Users/ovr/projects/ovr/hlvm/packages/runtime/v8/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j12 -f &quot;/Users/ovr/projects/ovr/hlvm/packages/runtime/v8/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j12 -f &quot;/Users/ovr/projects/ovr/hlvm/packages/runtime/v8/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+		</Build>
+		<Unit filename="/Users/ovr/projects/ovr/hlvm/packages/runtime/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\"/>
+		</Unit>
+		<Unit filename="/Users/ovr/projects/ovr/hlvm/packages/runtime/v8/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\v8\"/>
+		</Unit>
+	</Project>
+</CodeBlocks_project_file>
