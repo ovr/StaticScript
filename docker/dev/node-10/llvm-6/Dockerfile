@@ -1,4 +1,4 @@
-FROM node:10-slim
+FROM node:10-stretch
 
 RUN wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add - && \
     echo "deb http://apt.llvm.org/stretch/ llvm-toolchain-stretch-6.0 main" | tee -a /etc/apt/sources.list && \
