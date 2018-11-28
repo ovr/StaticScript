@@ -1,7 +1,7 @@
 #include <cmath>
 
 #include "math.h"
-#include "v8/src/base/utils/random-number-generator.cc"
+#include "v8/src/base/utils/random-number-generator.h"
 
 LIBRARY_EXPORT double Math__pow(double number, double power) {
     return std::pow(number, power);
@@ -20,7 +20,7 @@ LIBRARY_EXPORT double Math__round(double number) {
 }
 
 LIBRARY_EXPORT double Math__random() {
-    v8::base::RandomNumberGenerator rand(92834738);
+    auto *rng = new v8::base::RandomNumberGenerator();
 
-    return rand.NextDouble();
+    return rng->NextDouble();
 }
