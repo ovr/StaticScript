@@ -1,28 +1,19 @@
 
 {
-    function doMath(): number {
-        const a = 5.5;
-        const b = 14.5;
+    function calculatePI(cycles: number): number {
+        let inside = 0;
 
-        return ((a + b) * 50) / 10;
+        for (let i = 0; i < cycles; i++) {
+            let x = Math.random() * 2 - 1;
+            let y = Math.random() * 2 - 1;
+
+            if ((x*x + y*y) < 1) {
+                inside++
+            }
+        }
+
+        return 4.0 * inside / cycles;
     }
 
-    const a: int8 = 10;
-    const b: int16 = 10;
-    const c: int32 = 10;
-    const d: int64 = 10;
-    const e: int128 = 10;
-
-    console_log("hello");
-    console_log(doMath());
-    console_log(true);
-    console_log(false);
-    console_log(1 > 5);
-    console_log(1 < 5);
-
-    if (5 > 4) {
-        console_log('5 > 4');
-    } else {
-        console_log('5 < 4');
-    }
+    console_log(calculatePI(100000));
 }

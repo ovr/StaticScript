@@ -47,13 +47,14 @@ $ ./bin/ssc calculate-pi.ts
 Next run it:
 
 ```sh
-$ ./output/main
+$ time ./output/main
 ```
 
 This will produce:
 
 ```
-3.141560
+3.144800
+./output/main  0,01s user 0,00s system 80% cpu 0,013 total
 ```
 
 ### LICENSE
