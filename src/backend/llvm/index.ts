@@ -10,45 +10,8 @@ import {LANGUAGE_DEFINITION_FILE} from "../../constants";
 import {CMangler} from "./c.mangler";
 import {ManglerInterface} from "./mangler.interface";
 import {Value, ValueTypeEnum} from "./value";
-import BinaryExpressionCodeGenerator from "./code-generation/binary-expression";
-
-export function passReturnStatement(parent: ts.ReturnStatement, ctx: Context, builder: llvm.IRBuilder) {
-    if (!parent.expression) {
-        return builder.createRetVoid();
-    }
-
-    if (parent.expression.kind === ts.SyntaxKind.Identifier) {
-        return builder.createRet(
-            loadIfNeeded(
-                buildFromIdentifier(<any>parent.expression, ctx, builder),
-                builder,
-                ctx
-            )
-        );
-    }
-
-    const left = buildFromExpression(
-        parent.expression,
-        ctx,
-        builder,
-        ctx.scope.enclosureFunction.declaration ? (
-            NativeTypeResolver.getType(
-                ctx.typeChecker.getTypeFromTypeNode(ctx.scope.enclosureFunction.declaration.type),
-                ctx
-            )
-        ) : undefined
-    );
-    if (left) {
-        return builder.createRet(
-            loadIfNeeded(left, builder, ctx)
-        );
-    }
-
-    throw new UnsupportedError(
-        parent.expression,
-        `Unsupported ReturnStatement, unexpected: "${parent.expression.kind}"`
-    );
-}
+import {BinaryExpressionCodeGenerator} from "./code-generation/binary-expression";
+import {ReturnStatementCodeGenerator} from "./code-generation/return-statement";
 
 export function passIfStatement(parent: ts.IfStatement, ctx: Context, builder: llvm.IRBuilder) {
     const positiveBlock = llvm.BasicBlock.create(ctx.llvmContext, "if.true");
@@ -476,7 +439,7 @@ function declareFunctionFromDefinition(
     );
 }
 
-function buildFromIdentifier(identifier: ts.Identifier, ctx: Context, builder: llvm.IRBuilder): Value {
+export function buildFromIdentifier(identifier: ts.Identifier, ctx: Context, builder: llvm.IRBuilder): Value {
     const variable = ctx.scope.variables.get(<string>identifier.escapedText);
     if (variable) {
         return variable;
@@ -594,7 +557,7 @@ export function passStatement(stmt: ts.Statement, ctx: Context, builder: llvm.IR
             passFunctionDeclaration(<any>stmt, ctx, builder);
             break;
         case ts.SyntaxKind.ReturnStatement:
-            passReturnStatement(<any>stmt, ctx, builder);
+            new ReturnStatementCodeGenerator().generate(<any>stmt, ctx, builder);
             break;
         case ts.SyntaxKind.IfStatement:
             passIfStatement(<any>stmt, ctx, builder);
