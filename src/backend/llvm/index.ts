@@ -546,7 +546,7 @@ function buildFromCallExpression(
     expr: ts.CallExpression,
     ctx: Context,
     builder: llvm.IRBuilder
-) {
+): Value {
     const callle = buildCalleFromCallExpression(expr, ctx, builder);
     if (!callle) {
         throw new UnsupportedError(
@@ -559,9 +559,11 @@ function buildFromCallExpression(
         return buildFromExpression(<any>expr, ctx, builder).llvmValue;
     });
 
-    return builder.createCall(
-        callle,
-        args,
+    return new Value(
+        builder.createCall(
+            callle,
+            args,
+        )
     );
 }
 
