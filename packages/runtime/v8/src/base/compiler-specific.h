@@ -5,7 +5,7 @@
 #ifndef V8_BASE_COMPILER_SPECIFIC_H_
 #define V8_BASE_COMPILER_SPECIFIC_H_
 
-#include "../../include/v8config.h"
+#include "include/v8config.h"
 
 // Annotate a typedef or function indicating it's ok if it's not used.
 // Use like:

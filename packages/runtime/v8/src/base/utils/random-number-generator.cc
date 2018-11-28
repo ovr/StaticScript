@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "random-number-generator.h"
+#include "src/base/utils/random-number-generator.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -10,10 +10,10 @@
 #include <algorithm>
 #include <new>
 
-#include "../bits.h"
-#include "../macros.h"
-#include "../platform/mutex.h"
-#include "../platform/time.h"
+#include "src/base/bits.h"
+#include "src/base/macros.h"
+#include "src/base/platform/mutex.h"
+#include "src/base/platform/time.h"
 
 namespace v8 {
 namespace base {

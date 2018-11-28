@@ -68,8 +68,8 @@
 #ifndef V8_BASE_LAZY_INSTANCE_H_
 #define V8_BASE_LAZY_INSTANCE_H_
 
-#include "macros.h"
-#include "once.h"
+#include "src/base/macros.h"
+#include "src/base/once.h"
 
 namespace v8 {
 namespace base {

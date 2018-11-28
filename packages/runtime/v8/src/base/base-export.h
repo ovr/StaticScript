@@ -5,7 +5,7 @@
 #ifndef V8_BASE_BASE_EXPORT_H_
 #define V8_BASE_BASE_EXPORT_H_
 
-#include "../../include/v8config.h"
+#include "include/v8config.h"
 
 #if V8_OS_WIN
 

@@ -33,13 +33,14 @@
 // - libstdc++: captures bits/c++config.h for __GLIBCXX__
 #include <cstddef>
 
-#include "base-export.h"
-#include "build_config.h"
+#include "src/base/base-export.h"
+#include "src/base/build_config.h"
 
 namespace v8 {
 namespace base {
 
 typedef char Atomic8;
+typedef int16_t Atomic16;
 typedef int32_t Atomic32;
 #if defined(V8_HOST_ARCH_64_BIT)
 // We need to be able to go between Atomic64 and AtomicWord implicitly.  This
@@ -97,10 +98,12 @@ Atomic32 Release_CompareAndSwap(volatile Atomic32* ptr,
 
 void SeqCst_MemoryFence();
 void Relaxed_Store(volatile Atomic8* ptr, Atomic8 value);
+void Relaxed_Store(volatile Atomic16* ptr, Atomic16 value);
 void Relaxed_Store(volatile Atomic32* ptr, Atomic32 value);
 void Release_Store(volatile Atomic32* ptr, Atomic32 value);
 
 Atomic8 Relaxed_Load(volatile const Atomic8* ptr);
+Atomic16 Relaxed_Load(volatile const Atomic16* ptr);
 Atomic32 Relaxed_Load(volatile const Atomic32* ptr);
 Atomic32 Acquire_Load(volatile const Atomic32* ptr);
 
@@ -132,13 +135,13 @@ Atomic64 Acquire_Load(volatile const Atomic64* ptr);
 #else
 // TODO(ulan): Switch to std version after performance regression with Wheezy
 // sysroot is no longer relevant. Debian Wheezy LTS ends on 31st of May 2018.
-#include "atomicops_internals_portable.h"
+#include "src/base/atomicops_internals_portable.h"
 #endif
 
 // On some platforms we need additional declarations to make
 // AtomicWord compatible with our other Atomic* types.
 #if defined(V8_OS_MACOSX) || defined(V8_OS_OPENBSD) || defined(V8_OS_AIX)
-#include "atomicops_internals_atomicword_compat.h"
+#include "src/base/atomicops_internals_atomicword_compat.h"
 #endif
 
 #endif  // V8_BASE_ATOMICOPS_H_

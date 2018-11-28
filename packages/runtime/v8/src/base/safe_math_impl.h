@@ -14,8 +14,8 @@
 #include <cstdlib>
 #include <limits>
 
-#include "macros.h"
-#include "safe_conversions.h"
+#include "src/base/macros.h"
+#include "src/base/safe_conversions.h"
 
 namespace v8 {
 namespace base {

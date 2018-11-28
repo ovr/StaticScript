@@ -9,10 +9,10 @@
 #include <sstream>
 #include <string>
 
-#include "base-export.h"
-#include "build_config.h"
-#include "compiler-specific.h"
-#include "template-utils.h"
+#include "src/base/base-export.h"
+#include "src/base/build_config.h"
+#include "src/base/compiler-specific.h"
+#include "src/base/template-utils.h"
 
 [[noreturn]] PRINTF_FORMAT(3, 4) V8_BASE_EXPORT V8_NOINLINE
     void V8_Fatal(const char* file, int line, const char* format, ...);

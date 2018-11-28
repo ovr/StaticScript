@@ -8,7 +8,7 @@
 #ifndef V8_BASE_SAFE_MATH_H_
 #define V8_BASE_SAFE_MATH_H_
 
-#include "safe_math_impl.h"
+#include "src/base/safe_math_impl.h"
 
 namespace v8 {
 namespace base {

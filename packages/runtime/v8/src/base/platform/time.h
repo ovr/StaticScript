@@ -11,10 +11,10 @@
 #include <iosfwd>
 #include <limits>
 
-#include "../base-export.h"
-#include "../bits.h"
-#include "../macros.h"
-#include "../safe_math.h"
+#include "src/base/base-export.h"
+#include "src/base/bits.h"
+#include "src/base/macros.h"
+#include "src/base/safe_math.h"
 #if V8_OS_WIN
 #include "src/base/win32-headers.h"
 #endif

@@ -8,8 +8,8 @@
 #include <unordered_set>
 #include <vector>
 
-#include "../base-export.h"
-#include "../macros.h"
+#include "src/base/base-export.h"
+#include "src/base/macros.h"
 
 namespace v8 {
 namespace base {

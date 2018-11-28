@@ -24,7 +24,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "build_config.h"
+#include "src/base/build_config.h"
 
 #if defined(V8_OS_POSIX) && (defined(_INTTYPES_H) || defined(_INTTYPES_H_)) && \
     !defined(PRId64)

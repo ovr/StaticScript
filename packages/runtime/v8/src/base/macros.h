@@ -7,9 +7,9 @@
 
 #include <limits>
 
-#include "compiler-specific.h"
-#include "format-macros.h"
-#include "logging.h"
+#include "src/base/compiler-specific.h"
+#include "src/base/format-macros.h"
+#include "src/base/logging.h"
 
 // No-op macro which is used to work around MSVC's funky VA_ARGS support.
 #define EXPAND(x) x
@@ -385,7 +385,7 @@ constexpr inline T RoundUp(T x) {
 }
 
 template <typename T, typename U>
-inline bool IsAligned(T value, U alignment) {
+constexpr inline bool IsAligned(T value, U alignment) {
   return (value & (alignment - 1)) == 0;
 }
 

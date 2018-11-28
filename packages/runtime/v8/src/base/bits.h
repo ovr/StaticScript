@@ -8,8 +8,8 @@
 #include <stdint.h>
 #include <type_traits>
 
-#include "base-export.h"
-#include "macros.h"
+#include "src/base/base-export.h"
+#include "src/base/macros.h"
 #if V8_CC_MSVC
 #include <intrin.h>
 #endif

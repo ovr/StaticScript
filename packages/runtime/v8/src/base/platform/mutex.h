@@ -5,12 +5,12 @@
 #ifndef V8_BASE_PLATFORM_MUTEX_H_
 #define V8_BASE_PLATFORM_MUTEX_H_
 
-#include "../base-export.h"
-#include "../lazy-instance.h"
+#include "src/base/base-export.h"
+#include "src/base/lazy-instance.h"
 #if V8_OS_WIN
 #include "src/base/win32-headers.h"
 #endif
-#include "../logging.h"
+#include "src/base/logging.h"
 
 #if V8_OS_POSIX
 #include <pthread.h>  // NOLINT

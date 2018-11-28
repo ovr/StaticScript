@@ -55,8 +55,8 @@
 #include <stddef.h>
 #include <functional>
 
-#include "atomicops.h"
-#include "base-export.h"
+#include "src/base/atomicops.h"
+#include "src/base/base-export.h"
 
 namespace v8 {
 namespace base {
