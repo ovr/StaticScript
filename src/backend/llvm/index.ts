@@ -10,6 +10,7 @@ import {LANGUAGE_DEFINITION_FILE} from "../../constants";
 import {CMangler} from "./c.mangler";
 import {ManglerInterface} from "./mangler.interface";
 import {Value, ValueTypeEnum} from "./value";
+import BinaryExpressionCodeGenerator from "./code-generation/binary-expression";
 
 export function passReturnStatement(parent: ts.ReturnStatement, ctx: Context, builder: llvm.IRBuilder) {
     if (!parent.expression) {
@@ -305,127 +306,6 @@ function buildFromNumericLiteral(
     );
 }
 
-function buildFromBinaryExpression(
-    expr: ts.BinaryExpression,
-    ctx: Context,
-    builder: llvm.IRBuilder
-): Value {
-    switch (expr.operatorToken.kind) {
-        case ts.SyntaxKind.EqualsToken: {
-            const left = buildFromExpression(expr.left, ctx, builder);
-            const right = buildFromExpression(expr.right, ctx, builder);
-
-            return new Value(
-                builder.createStore(
-                    right.llvmValue,
-                    left.llvmValue,
-                    false
-                )
-            );
-        }
-        case ts.SyntaxKind.PlusToken: {
-            const left = buildFromExpression(expr.left, ctx, builder);
-            const right = buildFromExpression(expr.right, ctx, builder);
-
-            return new Value(
-                builder.createFAdd(
-                    loadIfNeeded(left, builder, ctx),
-                    loadIfNeeded(right, builder, ctx)
-                )
-            );
-        }
-        case ts.SyntaxKind.MinusToken: {
-            const left = buildFromExpression(expr.left, ctx, builder);
-            const right = buildFromExpression(expr.right, ctx, builder);
-
-            return new Value(
-                builder.createFSub(
-                    loadIfNeeded(left, builder, ctx),
-                    loadIfNeeded(right, builder, ctx)
-                )
-            );
-        }
-        case ts.SyntaxKind.AsteriskToken: {
-            const left = buildFromExpression(expr.left, ctx, builder);
-            const right = buildFromExpression(expr.right, ctx, builder);
-
-            return new Value(
-                builder.createFMul(
-                    loadIfNeeded(left, builder, ctx),
-                    loadIfNeeded(right, builder, ctx)
-                )
-            );
-        }
-        case ts.SyntaxKind.SlashToken: {
-            const left = buildFromExpression(expr.left, ctx, builder);
-            const right = buildFromExpression(expr.right, ctx, builder);
-
-            return new Value(
-                builder.createFDiv(
-                    loadIfNeeded(left, builder, ctx),
-                    loadIfNeeded(right, builder, ctx)
-                )
-            );
-        }
-        case ts.SyntaxKind.GreaterThanToken: {
-            const left = buildFromExpression(expr.left, ctx, builder);
-            const right = buildFromExpression(expr.right, ctx, builder);
-
-            // const leftInt = builder.createZExt(left, llvm.Type.getInt32Ty(ctx.llvmContext));
-            // const rightInt = builder.createZExt(right, llvm.Type.getInt32Ty(ctx.llvmContext));
-
-            // const leftInt = builder.createFPToSI(
-            //     loadIfNeeded(left, builder, ctx),
-            //     llvm.Type.getInt32Ty(ctx.llvmContext)
-            // );
-            // const rightInt = builder.createFPToSI(
-            //     loadIfNeeded(right, builder, ctx),
-            //     llvm.Type.getInt32Ty(ctx.llvmContext)
-            // );
-
-            return new Value(
-                builder.createFCmpOGT(
-                    loadIfNeeded(left, builder, ctx),
-                    loadIfNeeded(right, builder, ctx),
-                    'cmpGT'
-                ),
-                ValueTypeEnum.BOOLEAN
-            );
-        }
-        case ts.SyntaxKind.LessThanToken: {
-            const left = buildFromExpression(expr.left, ctx, builder);
-            const right = buildFromExpression(expr.right, ctx, builder);
-
-            // const leftInt = builder.createZExt(left, llvm.Type.getInt32Ty(ctx.llvmContext));
-            // const rightInt = builder.createZExt(right, llvm.Type.getInt32Ty(ctx.llvmContext));
-
-            // const leftInt = builder.createFPToSI(
-            //     loadIfNeeded(left, builder, ctx),
-            //     llvm.Type.getInt32Ty(ctx.llvmContext)
-            // );
-            //
-            // const rightInt = builder.createFPToSI(
-            //     loadIfNeeded(right, builder, ctx),
-            //     llvm.Type.getInt32Ty(ctx.llvmContext)
-            // );
-
-            return new Value(
-                builder.createFCmpOLT(
-                    loadIfNeeded(left, builder, ctx),
-                    loadIfNeeded(right, builder, ctx),
-                    'cmpLT'
-                ),
-                ValueTypeEnum.BOOLEAN
-            );
-        }
-        default:
-            throw new UnsupportedError(
-                expr,
-                `Unsupported BinaryExpression.operator: "${expr.operatorToken.kind}"`
-            );
-    }
-}
-
 function buildFromPostfixUnaryExpression(
     expr: ts.PostfixUnaryExpression,
     ctx: Context,
@@ -614,7 +494,7 @@ function buildFromIdentifier(identifier: ts.Identifier, ctx: Context, builder: l
 }
 
 
-function buildFromExpression(block: ts.Expression, ctx: Context, builder: llvm.IRBuilder, nativeType?: NativeType): Value {
+export function buildFromExpression(block: ts.Expression, ctx: Context, builder: llvm.IRBuilder, nativeType?: NativeType): Value {
     switch (block.kind) {
         case ts.SyntaxKind.Identifier:
             return buildFromIdentifier(<any>block, ctx, builder);
@@ -627,7 +507,7 @@ function buildFromExpression(block: ts.Expression, ctx: Context, builder: llvm.I
         case ts.SyntaxKind.FalseKeyword:
             return buildFromFalseKeyword(<any>block, ctx, builder);
         case ts.SyntaxKind.BinaryExpression:
-            return buildFromBinaryExpression(<any>block, ctx, builder);
+            return new BinaryExpressionCodeGenerator().generate(<any>block, ctx, builder);
         case ts.SyntaxKind.PostfixUnaryExpression:
             return buildFromPostfixUnaryExpression(<any>block, ctx, builder);
         case ts.SyntaxKind.CallExpression:
@@ -726,7 +606,7 @@ export function passStatement(stmt: ts.Statement, ctx: Context, builder: llvm.IR
             passDoStatement(<any>stmt, ctx, builder);
             break;
         case ts.SyntaxKind.BinaryExpression:
-            buildFromBinaryExpression(<any>stmt, ctx, builder);
+            new BinaryExpressionCodeGenerator().generate(<any>stmt, ctx, builder);
             break;
         case ts.SyntaxKind.PostfixUnaryExpression:
             buildFromPostfixUnaryExpression(<any>stmt, ctx, builder);
@@ -739,7 +619,7 @@ export function passStatement(stmt: ts.Statement, ctx: Context, builder: llvm.IR
     }
 }
 
-function loadIfNeeded(value: Value, builder: llvm.IRBuilder, ctx: Context): llvm.Value {
+export function loadIfNeeded(value: Value, builder: llvm.IRBuilder, ctx: Context): llvm.Value {
     if (value.llvmValue.type.isPointerTy() && !value.isString()) {
         return builder.createLoad(value.llvmValue);
     }
