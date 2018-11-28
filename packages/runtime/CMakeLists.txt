@@ -13,6 +13,8 @@ set(SOURCE_FILES
     jsvalue.h
     math.cpp
     math.h
+    machine.cpp
+    machine.h
     v8/src/base/platform/mutex.cc
     v8/src/base/platform/time.cc
     v8/src/base/platform/semaphore.cc
