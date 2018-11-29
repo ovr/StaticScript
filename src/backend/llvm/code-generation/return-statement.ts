@@ -18,7 +18,6 @@ export class ReturnStatementCodeGenerator implements NodeGenerateInterface<ts.Re
                 loadIfNeeded(
                     buildFromIdentifier(<any>node.expression, ctx, builder),
                     builder,
-                    ctx
                 )
             );
         }
@@ -36,7 +35,7 @@ export class ReturnStatementCodeGenerator implements NodeGenerateInterface<ts.Re
         );
         if (left) {
             return builder.createRet(
-                loadIfNeeded(left, builder, ctx)
+                loadIfNeeded(left, builder)
             );
         }
 

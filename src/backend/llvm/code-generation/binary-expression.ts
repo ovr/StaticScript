@@ -28,8 +28,8 @@ export class BinaryExpressionCodeGenerator implements NodeGenerateInterface<ts.B
 
                 return new Value(
                     builder.createFAdd(
-                        loadIfNeeded(left, builder, ctx),
-                        loadIfNeeded(right, builder, ctx)
+                        loadIfNeeded(left, builder),
+                        loadIfNeeded(right, builder)
                     )
                 );
             }
@@ -39,8 +39,8 @@ export class BinaryExpressionCodeGenerator implements NodeGenerateInterface<ts.B
 
                 return new Value(
                     builder.createFSub(
-                        loadIfNeeded(left, builder, ctx),
-                        loadIfNeeded(right, builder, ctx)
+                        loadIfNeeded(left, builder),
+                        loadIfNeeded(right, builder)
                     )
                 );
             }
@@ -50,8 +50,8 @@ export class BinaryExpressionCodeGenerator implements NodeGenerateInterface<ts.B
 
                 return new Value(
                     builder.createFMul(
-                        loadIfNeeded(left, builder, ctx),
-                        loadIfNeeded(right, builder, ctx)
+                        loadIfNeeded(left, builder),
+                        loadIfNeeded(right, builder)
                     )
                 );
             }
@@ -61,8 +61,8 @@ export class BinaryExpressionCodeGenerator implements NodeGenerateInterface<ts.B
 
                 return new Value(
                     builder.createFDiv(
-                        loadIfNeeded(left, builder, ctx),
-                        loadIfNeeded(right, builder, ctx)
+                        loadIfNeeded(left, builder),
+                        loadIfNeeded(right, builder)
                     )
                 );
             }
@@ -84,8 +84,8 @@ export class BinaryExpressionCodeGenerator implements NodeGenerateInterface<ts.B
 
                 return new Value(
                     builder.createFCmpOGT(
-                        loadIfNeeded(left, builder, ctx),
-                        loadIfNeeded(right, builder, ctx),
+                        loadIfNeeded(left, builder),
+                        loadIfNeeded(right, builder),
                         'cmpGT'
                     ),
                     ValueTypeEnum.BOOLEAN
@@ -110,8 +110,8 @@ export class BinaryExpressionCodeGenerator implements NodeGenerateInterface<ts.B
 
                 return new Value(
                     builder.createFCmpOLT(
-                        loadIfNeeded(left, builder, ctx),
-                        loadIfNeeded(right, builder, ctx),
+                        loadIfNeeded(left, builder),
+                        loadIfNeeded(right, builder),
                         'cmpLT'
                     ),
                     ValueTypeEnum.BOOLEAN

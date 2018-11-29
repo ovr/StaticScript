@@ -279,7 +279,7 @@ function buildFromPostfixUnaryExpression(
             const left = buildFromExpression(expr.operand, ctx, builder);
 
             const next = builder.createFAdd(
-                loadIfNeeded(left, builder, ctx),
+                loadIfNeeded(left, builder),
                 llvm.ConstantFP.get(ctx.llvmContext, 1)
             );
 
@@ -295,7 +295,7 @@ function buildFromPostfixUnaryExpression(
             const left = buildFromExpression(expr.operand, ctx, builder);
 
             const next = builder.createFSub(
-                loadIfNeeded(left, builder, ctx),
+                loadIfNeeded(left, builder),
                 llvm.ConstantFP.get(ctx.llvmContext, 1)
             );
 
@@ -399,7 +399,9 @@ function buildFromCallExpression(
     }
 
     const args = expr.arguments.map((expr) => {
-        return buildFromExpression(<any>expr, ctx, builder).llvmValue;
+        return loadIfNeeded(
+            buildFromExpression(<any>expr, ctx, builder), builder
+        );
     });
 
     return new Value(
@@ -582,7 +584,7 @@ export function passStatement(stmt: ts.Statement, ctx: Context, builder: llvm.IR
     }
 }
 
-export function loadIfNeeded(value: Value, builder: llvm.IRBuilder, ctx: Context): llvm.Value {
+export function loadIfNeeded(value: Value, builder: llvm.IRBuilder): llvm.Value {
     if (value.llvmValue.type.isPointerTy() && !value.isString()) {
         return builder.createLoad(value.llvmValue);
     }
