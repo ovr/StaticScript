@@ -62,10 +62,10 @@ export function passForStatement(parent: ts.ForStatement, ctx: Context, builder:
     const conditionBlock = llvm.BasicBlock.create(ctx.llvmContext, "for.condition", ctx.scope.enclosureFunction.llvmFunction);
     ctx.scope.enclosureFunction.llvmFunction.addBasicBlock(conditionBlock);
 
-    const positiveBlock = llvm.BasicBlock.create(ctx.llvmContext, "for.true");
-    ctx.scope.enclosureFunction.llvmFunction.addBasicBlock(positiveBlock);
+    const bodyBlock = llvm.BasicBlock.create(ctx.llvmContext, "for.body");
+    ctx.scope.enclosureFunction.llvmFunction.addBasicBlock(bodyBlock);
 
-    const next = llvm.BasicBlock.create(ctx.llvmContext, "for.end");
+    const next = llvm.BasicBlock.create(ctx.llvmContext);
     ctx.scope.enclosureFunction.llvmFunction.addBasicBlock(next);
 
     if (parent.condition) {
@@ -76,17 +76,24 @@ export function passForStatement(parent: ts.ForStatement, ctx: Context, builder:
             parent.condition,
             ctx,
             builder,
-            positiveBlock,
+            bodyBlock,
             next
         );
     } else {
         builder.createBr(next);
     }
 
-    builder.setInsertionPoint(positiveBlock);
+    builder.setInsertionPoint(bodyBlock);
     passStatement(parent.statement, ctx, builder);
 
     if (parent.incrementor) {
+        const incrementer = llvm.BasicBlock.create(ctx.llvmContext, "for.inc");
+        ctx.scope.enclosureFunction.llvmFunction.addBasicBlock(incrementer);
+
+        // jump from bodyBlock to incrementer
+        builder.createBr(incrementer);
+        builder.setInsertionPoint(incrementer);
+
         passStatement(<any>parent.incrementor, ctx, builder);
     }
 
