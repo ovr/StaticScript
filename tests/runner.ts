@@ -3,9 +3,16 @@ import * as fs from "fs";
 import * as path from "path";
 import {execFileSync} from "child_process";
 
-const testFilePath = path.join(__dirname, 'snapshots', 'math');
-const testFiles = fs.readdirSync(testFilePath).filter(file => file.endsWith(".ts")).map(file => {
-    return path.join(testFilePath, file);
+const testFileBasePath = path.join(__dirname, 'snapshots');
+
+const testFiles = [];
+
+fs.readdirSync(testFileBasePath).forEach((directory: string) => {
+    fs.readdirSync(path.join(testFileBasePath, directory)).forEach((file) => {
+        if (file.endsWith(".ts")) {
+            testFiles.push(path.join(testFileBasePath, directory, file));
+        }
+    });
 });
 
 async function main() {
