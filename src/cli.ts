@@ -75,8 +75,9 @@ try {
     const optimizationLevel = `-O${cliOptions.optimizationLevel}`;
 
     executeLLCSync([
-        // @todo relocation R_X86_64_32 against `.rodata.str1.1' can not be used when making a shared object; recompile with -fPIC
-        '-O0',
+        optimizationLevel,
+        // Fully relocatable, position independent code
+        '-relocation-model=pic',
         '-filetype=obj', path.join(outputPath, 'main.bc'),
         '-o', path.join(outputPath, 'main.o'),
     ]);
