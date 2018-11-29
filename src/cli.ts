@@ -88,6 +88,7 @@ try {
         '-lstdc++',
         '-std=c++11',
         '-Werror',
+        '-pthread',
         '-v',
     ]);
 } catch (e) {
