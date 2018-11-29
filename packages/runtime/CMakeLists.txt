@@ -33,6 +33,8 @@ if (WIN32)
     )
 else()
     set(
+        SOURCE_FILES
+        ${SOURCE_FILES}
         v8/src/base/platform/platform-posix.cc
         v8/src/base/platform/platform-posix-time.cc
     )
