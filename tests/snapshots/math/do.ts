@@ -2,10 +2,12 @@
 {
     function calculateTotalFromRange(start: number, end: number): number {
         let total: number = 0;
+        let i: number = start;
 
-        for (let i = start; i < end; i++) {
+        do {
             total = total + i;
-        }
+            i = i + 1;
+        } while (i < end);
 
         return total;
     }

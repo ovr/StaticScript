@@ -14,6 +14,7 @@ import {BinaryExpressionCodeGenerator} from "./code-generation/binary-expression
 import {ReturnStatementCodeGenerator} from "./code-generation/return-statement";
 import {ForStatementGenerator} from "./code-generation/for-statement";
 import {DoStatementGenerator} from "./code-generation/do-statement";
+import {WhileStatementGenerator} from "./code-generation/while-statement";
 
 export function passIfStatement(parent: ts.IfStatement, ctx: Context, builder: llvm.IRBuilder) {
     const positiveBlock = llvm.BasicBlock.create(ctx.llvmContext, "if.true");
@@ -500,6 +501,9 @@ export function passStatement(stmt: ts.Statement, ctx: Context, builder: llvm.IR
             break;
         case ts.SyntaxKind.DoStatement:
             new DoStatementGenerator().generate(<any>stmt, ctx, builder);
+            break;
+        case ts.SyntaxKind.WhileStatement:
+            new WhileStatementGenerator().generate(<any>stmt, ctx, builder);
             break;
         case ts.SyntaxKind.BinaryExpression:
             new BinaryExpressionCodeGenerator().generate(<any>stmt, ctx, builder);

@@ -20,12 +20,12 @@ async function main() {
         for (const testFile of testFiles) {
             console.log(testFile, "\n");
 
-            const result = execFileSync(path.join(__dirname, '..', 'bin', 'ssc'), [
+            const compileLog = execFileSync(path.join(__dirname, '..', 'bin', 'ssc'), [
                 '--printIR',
                 testFile
             ]);
 
-            console.log(result.toString());
+            console.log(compileLog.toString());
         }
     } catch (error) {
         console.log(error.output.toString());

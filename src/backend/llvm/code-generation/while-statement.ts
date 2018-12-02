@@ -5,21 +5,16 @@ import {NodeGenerateInterface} from "../node-generate.interface";
 import {Context} from "../context";
 import {emitCondition, passStatement} from "../index";
 
-export class DoStatementGenerator implements NodeGenerateInterface<ts.DoStatement, void> {
-    generate(node: ts.DoStatement, ctx: Context, builder: llvm.IRBuilder): void {
-        const conditionBlock = llvm.BasicBlock.create(ctx.llvmContext, "do.condition");
+export class WhileStatementGenerator implements NodeGenerateInterface<ts.WhileStatement, void> {
+    generate(node: ts.WhileStatement, ctx: Context, builder: llvm.IRBuilder): void {
+        const conditionBlock = llvm.BasicBlock.create(ctx.llvmContext, "while.condition");
         ctx.scope.enclosureFunction.llvmFunction.addBasicBlock(conditionBlock);
 
-        const positiveBlock = llvm.BasicBlock.create(ctx.llvmContext, "do.body");
+        const positiveBlock = llvm.BasicBlock.create(ctx.llvmContext, "while.body");
         ctx.scope.enclosureFunction.llvmFunction.addBasicBlock(positiveBlock);
 
         const next = llvm.BasicBlock.create(ctx.llvmContext);
         ctx.scope.enclosureFunction.llvmFunction.addBasicBlock(next);
-
-        builder.createBr(positiveBlock);
-        builder.setInsertionPoint(positiveBlock);
-
-        passStatement(<any>node.statement, ctx, builder);
 
         builder.createBr(conditionBlock);
         builder.setInsertionPoint(conditionBlock);
@@ -31,6 +26,12 @@ export class DoStatementGenerator implements NodeGenerateInterface<ts.DoStatemen
             positiveBlock,
             next
         );
+
+        builder.setInsertionPoint(positiveBlock);
+        passStatement(<any>node.statement, ctx, builder);
+
+        // jump again to condition
+        builder.createBr(conditionBlock);
 
         builder.setInsertionPoint(next);
     }
