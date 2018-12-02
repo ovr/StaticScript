@@ -42,6 +42,13 @@
         return 16 >> 2;
     }
 
+    function simpleShl(): number {
+        const a: number = 5;
+        const b: number = 10;
+
+        return 2 << 4;
+    }
+
     function mathFloor(): number {
         return Math.floor(5.45);
     }
@@ -64,6 +71,7 @@
     simpleMul();
     simpleXor();
     simpleAshr();
+    simpleShl();
 
     mathFloor();
     mathCeil();

@@ -80,6 +80,18 @@ export class BinaryExpressionCodeGenerator implements NodeGenerateInterface<ts.B
                     )
                 );
             }
+            // a << b
+            case ts.SyntaxKind.LessThanLessThanToken: {
+                const left = buildFromExpression(node.left, ctx, builder);
+                const right = buildFromExpression(node.right, ctx, builder);
+
+                return new Value(
+                    builder.createShl(
+                        loadIfNeeded(left, builder),
+                        loadIfNeeded(right, builder)
+                    )
+                );
+            }
             case ts.SyntaxKind.SlashToken: {
                 const left = buildFromExpression(node.left, ctx, builder);
                 const right = buildFromExpression(node.right, ctx, builder);
