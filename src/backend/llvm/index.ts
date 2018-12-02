@@ -12,6 +12,7 @@ import {ManglerInterface} from "./mangler.interface";
 import {Value, ValueTypeEnum} from "./value";
 import {BinaryExpressionCodeGenerator} from "./code-generation/binary-expression";
 import {ReturnStatementCodeGenerator} from "./code-generation/return-statement";
+import {ForStatementGenerator} from "./code-generation/for-statement";
 
 export function passIfStatement(parent: ts.IfStatement, ctx: Context, builder: llvm.IRBuilder) {
     const positiveBlock = llvm.BasicBlock.create(ctx.llvmContext, "if.true");
@@ -50,55 +51,6 @@ export function passIfStatement(parent: ts.IfStatement, ctx: Context, builder: l
     passNode(parent.thenStatement, ctx, builder);
 
     builder.createBr(next);
-
-    builder.setInsertionPoint(next);
-}
-
-export function passForStatement(parent: ts.ForStatement, ctx: Context, builder: llvm.IRBuilder) {
-    if (parent.initializer) {
-        passStatement(<any>parent.initializer, ctx, builder);
-    }
-
-    const conditionBlock = llvm.BasicBlock.create(ctx.llvmContext, "for.condition", ctx.scope.enclosureFunction.llvmFunction);
-    ctx.scope.enclosureFunction.llvmFunction.addBasicBlock(conditionBlock);
-
-    const bodyBlock = llvm.BasicBlock.create(ctx.llvmContext, "for.body");
-    ctx.scope.enclosureFunction.llvmFunction.addBasicBlock(bodyBlock);
-
-    const next = llvm.BasicBlock.create(ctx.llvmContext);
-    ctx.scope.enclosureFunction.llvmFunction.addBasicBlock(next);
-
-    if (parent.condition) {
-        builder.createBr(conditionBlock);
-        builder.setInsertionPoint(conditionBlock);
-
-        emitCondition(
-            parent.condition,
-            ctx,
-            builder,
-            bodyBlock,
-            next
-        );
-    } else {
-        builder.createBr(next);
-    }
-
-    builder.setInsertionPoint(bodyBlock);
-    passStatement(parent.statement, ctx, builder);
-
-    if (parent.incrementor) {
-        const incrementer = llvm.BasicBlock.create(ctx.llvmContext, "for.inc");
-        ctx.scope.enclosureFunction.llvmFunction.addBasicBlock(incrementer);
-
-        // jump from bodyBlock to incrementer
-        builder.createBr(incrementer);
-        builder.setInsertionPoint(incrementer);
-
-        passStatement(<any>parent.incrementor, ctx, builder);
-    }
-
-    // jump again to condition
-    builder.createBr(conditionBlock);
 
     builder.setInsertionPoint(next);
 }
@@ -572,7 +524,7 @@ export function passStatement(stmt: ts.Statement, ctx: Context, builder: llvm.IR
             passIfStatement(<any>stmt, ctx, builder);
             break;
         case ts.SyntaxKind.ForStatement:
-            passForStatement(<any>stmt, ctx, builder);
+            new ForStatementGenerator().generate(<any>stmt, ctx, builder);
             break;
         case ts.SyntaxKind.DoStatement:
             passDoStatement(<any>stmt, ctx, builder);
