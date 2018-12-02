@@ -22,7 +22,7 @@ function mangleParameters(parameters: ts.NodeArray<ts.ParameterDeclaration>): st
 
                 throw new Error('Unsupported mangling without type');
             }
-        ).join();
+        ).join('');
     }
 
     return 'v';

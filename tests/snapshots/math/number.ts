@@ -35,29 +35,30 @@
         return 5 ^ 10;
     }
 
-    // function mathFloor(): number {
-    //     return Math.floor(5.45);
-    // }
-    //
-    // function mathCeil(): number {
-    //     return Math.floor(5.45);
-    // }
-    //
-    // function mathSqrt(): number {
-    //     return Math.sqrt(4);
-    // }
-    //
-    // function mathPow(): number {
-    //     return Math.pow(4, 4);
-    // }
+    function mathFloor(): number {
+        return Math.floor(5.45);
+    }
+
+    function mathCeil(): number {
+        return Math.floor(5.45);
+    }
+
+    function mathSqrt(): number {
+        return Math.sqrt(4);
+    }
+
+    function mathPow(): number {
+        return Math.pow(4, 4);
+    }
 
     simpleAdd();
     simpleSub();
     simpleDiv();
     simpleMul();
     simpleXor();
-    // mathFloor();
-    // mathCeil();
-    // mathSqrt();
-    // mathPow();
+    mathFloor();
+
+    mathCeil();
+    mathSqrt();
+    mathPow();
 }
