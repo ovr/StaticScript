@@ -13,6 +13,7 @@ import {Value, ValueTypeEnum} from "./value";
 import {BinaryExpressionCodeGenerator} from "./code-generation/binary-expression";
 import {ReturnStatementCodeGenerator} from "./code-generation/return-statement";
 import {ForStatementGenerator} from "./code-generation/for-statement";
+import {DoStatementGenerator} from "./code-generation/do-statement";
 
 export function passIfStatement(parent: ts.IfStatement, ctx: Context, builder: llvm.IRBuilder) {
     const positiveBlock = llvm.BasicBlock.create(ctx.llvmContext, "if.true");
@@ -51,35 +52,6 @@ export function passIfStatement(parent: ts.IfStatement, ctx: Context, builder: l
     passNode(parent.thenStatement, ctx, builder);
 
     builder.createBr(next);
-
-    builder.setInsertionPoint(next);
-}
-
-export function passDoStatement(parent: ts.DoStatement, ctx: Context, builder: llvm.IRBuilder) {
-    const conditionBlock = llvm.BasicBlock.create(ctx.llvmContext, "for.condition");
-    ctx.scope.enclosureFunction.llvmFunction.addBasicBlock(conditionBlock);
-
-    const positiveBlock = llvm.BasicBlock.create(ctx.llvmContext, "for.true");
-    ctx.scope.enclosureFunction.llvmFunction.addBasicBlock(positiveBlock);
-
-    const next = llvm.BasicBlock.create(ctx.llvmContext, "for.end");
-    ctx.scope.enclosureFunction.llvmFunction.addBasicBlock(next);
-
-    builder.createBr(positiveBlock);
-    builder.setInsertionPoint(positiveBlock);
-
-    passStatement(<any>parent.statement, ctx, builder);
-
-    builder.createBr(conditionBlock);
-    builder.setInsertionPoint(conditionBlock);
-
-    emitCondition(
-        parent.expression,
-        ctx,
-        builder,
-        positiveBlock,
-        next
-    );
 
     builder.setInsertionPoint(next);
 }
@@ -527,7 +499,7 @@ export function passStatement(stmt: ts.Statement, ctx: Context, builder: llvm.IR
             new ForStatementGenerator().generate(<any>stmt, ctx, builder);
             break;
         case ts.SyntaxKind.DoStatement:
-            passDoStatement(<any>stmt, ctx, builder);
+            new DoStatementGenerator().generate(<any>stmt, ctx, builder);
             break;
         case ts.SyntaxKind.BinaryExpression:
             new BinaryExpressionCodeGenerator().generate(<any>stmt, ctx, builder);
