@@ -28,6 +28,13 @@
         return a * b;
     }
 
+    function simpleXor(): number {
+        const a: number = 5;
+        const b: number = 10;
+
+        return 5 ^ 10;
+    }
+
     // function mathFloor(): number {
     //     return Math.floor(5.45);
     // }
@@ -48,6 +55,7 @@
     simpleSub();
     simpleDiv();
     simpleMul();
+    simpleXor();
     // mathFloor();
     // mathCeil();
     // mathSqrt();
