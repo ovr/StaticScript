@@ -92,12 +92,25 @@ export class BinaryExpressionCodeGenerator implements NodeGenerateInterface<ts.B
                     )
                 );
             }
+            // a / b
             case ts.SyntaxKind.SlashToken: {
                 const left = buildFromExpression(node.left, ctx, builder);
                 const right = buildFromExpression(node.right, ctx, builder);
 
                 return new Value(
                     builder.createFDiv(
+                        loadIfNeeded(left, builder),
+                        loadIfNeeded(right, builder)
+                    )
+                );
+            }
+            // a % b
+            case ts.SyntaxKind.PercentToken: {
+                const left = buildFromExpression(node.left, ctx, builder);
+                const right = buildFromExpression(node.right, ctx, builder);
+
+                return new Value(
+                    builder.createFRem(
                         loadIfNeeded(left, builder),
                         loadIfNeeded(right, builder)
                     )

@@ -21,6 +21,13 @@
         return a / b;
     }
 
+    function simpleRem(): number {
+        const a: number = 5;
+        const b: number = 10;
+
+        return a % b;
+    }
+
     function simpleMul(): number {
         const a: number = 5;
         const b: number = 10;
@@ -68,6 +75,7 @@
     simpleAdd();
     simpleSub();
     simpleDiv();
+    simpleRem();
     simpleMul();
     simpleXor();
     simpleAshr();
