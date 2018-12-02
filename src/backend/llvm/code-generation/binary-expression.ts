@@ -56,13 +56,25 @@ export class BinaryExpressionCodeGenerator implements NodeGenerateInterface<ts.B
                     )
                 );
             }
-            // a ^ b - XOR
+            // a ^ b
             case ts.SyntaxKind.CaretToken: {
                 const left = buildFromExpression(node.left, ctx, builder);
                 const right = buildFromExpression(node.right, ctx, builder);
 
                 return new Value(
                     builder.createXor(
+                        loadIfNeeded(left, builder),
+                        loadIfNeeded(right, builder)
+                    )
+                );
+            }
+            // a >> b
+            case ts.SyntaxKind.GreaterThanGreaterThanToken: {
+                const left = buildFromExpression(node.left, ctx, builder);
+                const right = buildFromExpression(node.right, ctx, builder);
+
+                return new Value(
+                    builder.createAShr(
                         loadIfNeeded(left, builder),
                         loadIfNeeded(right, builder)
                     )

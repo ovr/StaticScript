@@ -35,6 +35,13 @@
         return 5 ^ 10;
     }
 
+    function simpleAshr(): number {
+        const a: number = 5;
+        const b: number = 10;
+
+        return 16 >> 2;
+    }
+
     function mathFloor(): number {
         return Math.floor(5.45);
     }
@@ -56,8 +63,9 @@
     simpleDiv();
     simpleMul();
     simpleXor();
-    mathFloor();
+    simpleAshr();
 
+    mathFloor();
     mathCeil();
     mathSqrt();
     mathPow();
