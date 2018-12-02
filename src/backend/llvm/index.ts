@@ -134,7 +134,7 @@ export function passFunctionDeclaration(parent: ts.FunctionDeclaration, ctx: Con
     ctx.scope.enclosureFunction = enclosureFnStore;
 
     if (returnType.isVoidTy()) {
-        if (block.getTerminator()) {
+        if (!block.getTerminator()) {
             irBuilder.createRetVoid();
         }
 

@@ -4,6 +4,18 @@
         return "Hello world";
     }
 
+    function returnWithoutArgumentsLiteral(): void {
+        return;
+    }
+
+    function returnTrueAsBoolean(): boolean {
+        return true;
+    }
+
+    function returnFalseAsBoolean(): boolean {
+        return false;
+    }
+
     function returnNumberLiteral(): number {
         return 5;
     }
@@ -29,6 +41,9 @@
     }
 
     returnStringLiteral();
+    returnWithoutArgumentsLiteral();
+    returnTrueAsBoolean();
+    returnFalseAsBoolean();
     returnNumberLiteral();
     returnInt8();
     returnInt16();
