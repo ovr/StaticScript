@@ -22,6 +22,37 @@ export class BinaryExpressionCodeGenerator implements NodeGenerateInterface<ts.B
                     )
                 );
             }
+            /**
+             * This section resolve exression with equals operator
+             * Example: a += 1;
+             */
+            case ts.SyntaxKind.PercentEqualsToken:
+            case ts.SyntaxKind.SlashEqualsToken:
+            case ts.SyntaxKind.LessThanLessThanEqualsToken:
+            case ts.SyntaxKind.GreaterThanGreaterThanEqualsToken:
+            case ts.SyntaxKind.CaretEqualsToken:
+            case ts.SyntaxKind.AsteriskEqualsToken:
+            case ts.SyntaxKind.PlusEqualsToken:
+            case ts.SyntaxKind.MinusEqualsToken: {
+                const left = buildFromExpression(node.left, ctx, builder);
+                const right = this.doExpression(node, ctx, builder);
+
+                return new Value(
+                    builder.createStore(
+                        right.llvmValue,
+                        left.llvmValue,
+                        false
+                    )
+                );
+            }
+            default:
+                return this.doExpression(node, ctx, builder);
+        }
+    }
+
+    doExpression(node: ts.BinaryExpression, ctx: Context, builder: llvm.IRBuilder): Value {
+        switch (node.operatorToken.kind) {
+            case ts.SyntaxKind.PlusEqualsToken:
             case ts.SyntaxKind.PlusToken: {
                 const left = buildFromExpression(node.left, ctx, builder);
                 const right = buildFromExpression(node.right, ctx, builder);
@@ -33,6 +64,7 @@ export class BinaryExpressionCodeGenerator implements NodeGenerateInterface<ts.B
                     )
                 );
             }
+            case ts.SyntaxKind.MinusEqualsToken:
             case ts.SyntaxKind.MinusToken: {
                 const left = buildFromExpression(node.left, ctx, builder);
                 const right = buildFromExpression(node.right, ctx, builder);
@@ -45,6 +77,7 @@ export class BinaryExpressionCodeGenerator implements NodeGenerateInterface<ts.B
                 );
             }
             // a * b
+            case ts.SyntaxKind.AsteriskEqualsToken:
             case ts.SyntaxKind.AsteriskToken: {
                 const left = buildFromExpression(node.left, ctx, builder);
                 const right = buildFromExpression(node.right, ctx, builder);
@@ -57,6 +90,7 @@ export class BinaryExpressionCodeGenerator implements NodeGenerateInterface<ts.B
                 );
             }
             // a ^ b
+            case ts.SyntaxKind.CaretEqualsToken:
             case ts.SyntaxKind.CaretToken: {
                 const left = buildFromExpression(node.left, ctx, builder);
                 const right = buildFromExpression(node.right, ctx, builder);
@@ -69,6 +103,7 @@ export class BinaryExpressionCodeGenerator implements NodeGenerateInterface<ts.B
                 );
             }
             // a >> b
+            case ts.SyntaxKind.GreaterThanGreaterThanEqualsToken:
             case ts.SyntaxKind.GreaterThanGreaterThanToken: {
                 const left = buildFromExpression(node.left, ctx, builder);
                 const right = buildFromExpression(node.right, ctx, builder);
@@ -81,6 +116,7 @@ export class BinaryExpressionCodeGenerator implements NodeGenerateInterface<ts.B
                 );
             }
             // a << b
+            case ts.SyntaxKind.LessThanLessThanEqualsToken:
             case ts.SyntaxKind.LessThanLessThanToken: {
                 const left = buildFromExpression(node.left, ctx, builder);
                 const right = buildFromExpression(node.right, ctx, builder);
@@ -93,6 +129,7 @@ export class BinaryExpressionCodeGenerator implements NodeGenerateInterface<ts.B
                 );
             }
             // a / b
+            case ts.SyntaxKind.SlashEqualsToken:
             case ts.SyntaxKind.SlashToken: {
                 const left = buildFromExpression(node.left, ctx, builder);
                 const right = buildFromExpression(node.right, ctx, builder);
@@ -105,6 +142,7 @@ export class BinaryExpressionCodeGenerator implements NodeGenerateInterface<ts.B
                 );
             }
             // a % b
+            case ts.SyntaxKind.PercentEqualsToken:
             case ts.SyntaxKind.PercentToken: {
                 const left = buildFromExpression(node.left, ctx, builder);
                 const right = buildFromExpression(node.right, ctx, builder);
