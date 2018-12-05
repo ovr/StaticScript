@@ -5,6 +5,8 @@ StaticScript
 
 StaticScript is a language on top of TypeScript as frontend and LLVM as backend for code-generation to binary. 
 
+![](./docs/assets/how-it-works.png)
+
 # Installing
 
 For latest stable version:
