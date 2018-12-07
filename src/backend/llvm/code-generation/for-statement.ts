@@ -11,16 +11,25 @@ export class ForStatementGenerator implements NodeGenerateInterface<ts.ForStatem
             passStatement(<any>node.initializer, ctx, builder);
         }
 
-        const conditionBlock = llvm.BasicBlock.create(ctx.llvmContext, "for.condition", ctx.scope.enclosureFunction.llvmFunction);
-        ctx.scope.enclosureFunction.llvmFunction.addBasicBlock(conditionBlock);
-
         const bodyBlock = llvm.BasicBlock.create(ctx.llvmContext, "for.body");
         ctx.scope.enclosureFunction.llvmFunction.addBasicBlock(bodyBlock);
 
         const next = llvm.BasicBlock.create(ctx.llvmContext);
         ctx.scope.enclosureFunction.llvmFunction.addBasicBlock(next);
 
+        /**
+         * Pointer to block where cycle iteration start
+         * if there is condition inside for, this will point to condition block (body -> condition -> body/next)
+         * else this will point to bodyBlock (body -> body), it's inifinity cycle due there is not condition
+         */
+        let startBlock: llvm.BasicBlock = bodyBlock;
+
         if (node.condition) {
+            const conditionBlock = llvm.BasicBlock.create(ctx.llvmContext, "for.condition", ctx.scope.enclosureFunction.llvmFunction);
+            ctx.scope.enclosureFunction.llvmFunction.addBasicBlock(conditionBlock);
+
+            startBlock = conditionBlock;
+
             builder.createBr(conditionBlock);
             builder.setInsertionPoint(conditionBlock);
 
@@ -32,7 +41,8 @@ export class ForStatementGenerator implements NodeGenerateInterface<ts.ForStatem
                 next
             );
         } else {
-            builder.createBr(next);
+            builder.createBr(bodyBlock);
+            builder.setInsertionPoint(bodyBlock);
         }
 
         ctx.scope.breakBlock = next;
@@ -51,8 +61,8 @@ export class ForStatementGenerator implements NodeGenerateInterface<ts.ForStatem
             passStatement(<any>node.incrementor, ctx, builder);
         }
 
-        // jump again to condition
-        builder.createBr(conditionBlock);
+        // next iteration of cycle
+        builder.createBr(startBlock);
 
         ctx.scope.breakBlock = null;
 
