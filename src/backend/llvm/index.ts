@@ -15,6 +15,7 @@ import {ReturnStatementCodeGenerator} from "./code-generation/return-statement";
 import {ForStatementGenerator} from "./code-generation/for-statement";
 import {DoStatementGenerator} from "./code-generation/do-statement";
 import {WhileStatementGenerator} from "./code-generation/while-statement";
+import {BreakStatementGenerator} from "./code-generation/break-statement";
 
 export function passIfStatement(parent: ts.IfStatement, ctx: Context, builder: llvm.IRBuilder) {
     const positiveBlock = llvm.BasicBlock.create(ctx.llvmContext, "if.true");
@@ -492,6 +493,9 @@ export function passStatement(stmt: ts.Statement, ctx: Context, builder: llvm.IR
             break;
         case ts.SyntaxKind.ReturnStatement:
             new ReturnStatementCodeGenerator().generate(<any>stmt, ctx, builder);
+            break;
+        case ts.SyntaxKind.BreakStatement:
+            new BreakStatementGenerator().generate(<any>stmt, ctx, builder);
             break;
         case ts.SyntaxKind.IfStatement:
             passIfStatement(<any>stmt, ctx, builder);
