@@ -36,7 +36,7 @@ Put it in `calculate-pi.ts`
         return 4.0 * inside / cycles;
     }
 
-    console_log(calculatePI(100000));
+    console_log(calculatePI(1000000000));
 }
 ```
 

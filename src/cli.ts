@@ -10,7 +10,7 @@ import DiagnosticHostInstance from "./diagnostic.host";
 import UnsupportedError from "./backend/error/unsupported.error";
 import {existsSync, mkdirSync, unlinkSync} from "fs";
 import {execFileSync} from "child_process";
-import {executeLLCSync} from "./utils";
+import {executeLLCSync, executeOptSync} from "./utils";
 
 interface CommandLineArguments {
     args: string[];
@@ -74,6 +74,12 @@ try {
 
     const optimizationLevel = `-O${cliOptions.optimizationLevel}`;
 
+    executeOptSync([
+        optimizationLevel,
+        path.join(outputPath, 'main.bc'),
+        '-o', path.join(outputPath, 'main.bc')
+    ]);
+
     executeLLCSync([
         optimizationLevel,
         // Fully relocatable, position independent code
@@ -81,6 +87,7 @@ try {
         '-filetype=obj', path.join(outputPath, 'main.bc'),
         '-o', path.join(outputPath, 'main.o'),
     ]);
+
     execFileSync("c++", [
         optimizationLevel,
         path.join(outputPath, 'main.o'),

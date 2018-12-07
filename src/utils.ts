@@ -18,3 +18,10 @@ export function executeLLCSync(options: Array<any>) {
         options
     )
 }
+
+export function executeOptSync(options: Array<any>) {
+    child_process.execFileSync(
+        path.join(getLLVMBinDirectory(), 'opt'),
+        options
+    )
+}
