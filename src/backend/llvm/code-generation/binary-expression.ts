@@ -14,13 +14,13 @@ export class BinaryExpressionCodeGenerator implements NodeGenerateInterface<ts.B
                 const left = buildFromExpression(node.left, ctx, builder);
                 const right = buildFromExpression(node.right, ctx, builder);
 
-                return new Value(
-                    builder.createStore(
-                        right.llvmValue,
-                        left.llvmValue,
-                        false
-                    )
+                builder.createStore(
+                    right.llvmValue,
+                    left.llvmValue,
+                    false
                 );
+
+                return left;
             }
             /**
              * This section resolve exression with equals operator
@@ -37,13 +37,13 @@ export class BinaryExpressionCodeGenerator implements NodeGenerateInterface<ts.B
                 const left = buildFromExpression(node.left, ctx, builder);
                 const right = this.doExpression(node, ctx, builder);
 
-                return new Value(
-                    builder.createStore(
-                        right.llvmValue,
-                        left.llvmValue,
-                        false
-                    )
+                builder.createStore(
+                    right.llvmValue,
+                    left.llvmValue,
+                    false
                 );
+
+                return left;
             }
             default:
                 return this.doExpression(node, ctx, builder);

@@ -219,13 +219,13 @@ function buildFromPostfixUnaryExpression(
                 llvm.ConstantFP.get(ctx.llvmContext, 1)
             );
 
-            return new Value(
-                builder.createStore(
-                    next,
-                    left.llvmValue,
-                    false
-                )
+            builder.createStore(
+                next,
+                left.llvmValue,
+                false
             );
+
+            return left;
         }
         case ts.SyntaxKind.MinusMinusToken: {
             const left = buildFromExpression(expr.operand, ctx, builder);
@@ -235,13 +235,13 @@ function buildFromPostfixUnaryExpression(
                 llvm.ConstantFP.get(ctx.llvmContext, 1)
             );
 
-            return new Value(
-                builder.createStore(
-                    next,
-                    left.llvmValue,
-                    false
-                )
+            builder.createStore(
+                next,
+                left.llvmValue,
+                false
             );
+
+            return left;
         }
         default:
             throw new UnsupportedError(
