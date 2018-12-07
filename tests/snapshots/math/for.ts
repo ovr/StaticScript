@@ -10,6 +10,21 @@
         return total;
     }
 
+    function simpleBreak(): number {
+        let total: number = 0;
+
+        for (let i = 0; ; i++) {
+            total = total + i;
+
+            if (i > 100) {
+                break;
+            }
+        }
+
+        return total;
+    }
+
     calculateTotalFromRange(1, 100);
     calculateTotalFromRange(50, 100);
+    simpleBreak();
 }

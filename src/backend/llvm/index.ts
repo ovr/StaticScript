@@ -53,7 +53,9 @@ export function passIfStatement(parent: ts.IfStatement, ctx: Context, builder: l
     builder.setInsertionPoint(positiveBlock);
     passNode(parent.thenStatement, ctx, builder);
 
-    builder.createBr(next);
+    if (!positiveBlock.getTerminator()) {
+        builder.createBr(next);
+    }
 
     builder.setInsertionPoint(next);
 }
