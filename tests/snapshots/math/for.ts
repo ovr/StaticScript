@@ -24,7 +24,22 @@
         return total;
     }
 
+    function simpleContinue(): number {
+        let total: number = 0;
+
+        for (let i = 0; i++; i++) {
+            if (i > 50) {
+                continue;
+            }
+
+            total = total + i;
+        }
+
+        return total;
+    }
+
     calculateTotalFromRange(1, 100);
     calculateTotalFromRange(50, 100);
     simpleBreak();
+    simpleContinue();
 }
