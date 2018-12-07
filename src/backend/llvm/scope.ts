@@ -20,4 +20,5 @@ export class Scope {
     public enclosureFunction: EnclosureFunction;
     public functions: FunctionsTable = new FunctionsTable();
     public variables: VariablesTable = new VariablesTable();
+    public breakBlock: llvm.BasicBlock|null;
 }

@@ -35,6 +35,8 @@ export class ForStatementGenerator implements NodeGenerateInterface<ts.ForStatem
             builder.createBr(next);
         }
 
+        ctx.scope.breakBlock = next;
+
         builder.setInsertionPoint(bodyBlock);
         passStatement(node.statement, ctx, builder);
 
@@ -51,6 +53,8 @@ export class ForStatementGenerator implements NodeGenerateInterface<ts.ForStatem
 
         // jump again to condition
         builder.createBr(conditionBlock);
+
+        ctx.scope.breakBlock = null;
 
         builder.setInsertionPoint(next);
     }
