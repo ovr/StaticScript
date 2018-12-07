@@ -562,7 +562,7 @@ export function generateModuleFromProgram(program: ts.Program): llvm.Module {
         program.getTypeChecker()
     );
 
-    const mainFnType = llvm.FunctionType.get(llvm.Type.getVoidTy(ctx.llvmContext), false);
+    const mainFnType = llvm.FunctionType.get(llvm.Type.getInt64Ty(ctx.llvmContext), false);
     const mainFn = llvm.Function.create(mainFnType, llvm.LinkageTypes.ExternalLinkage, "main", ctx.llvmModule);
 
     const block = llvm.BasicBlock.create(ctx.llvmContext, "Entry", mainFn);
@@ -579,7 +579,9 @@ export function generateModuleFromProgram(program: ts.Program): llvm.Module {
         }
     }
 
-    builder.createRetVoid();
+    builder.createRet(
+        llvm.ConstantInt.get(ctx.llvmContext, 0, 64)
+    );
 
     return ctx.llvmModule;
 }
