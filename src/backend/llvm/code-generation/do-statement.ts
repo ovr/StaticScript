@@ -16,10 +16,14 @@ export class DoStatementGenerator implements NodeGenerateInterface<ts.DoStatemen
         const next = llvm.BasicBlock.create(ctx.llvmContext);
         ctx.scope.enclosureFunction.llvmFunction.addBasicBlock(next);
 
+        ctx.scope.breakBlock = next;
+
         builder.createBr(positiveBlock);
         builder.setInsertionPoint(positiveBlock);
 
         passStatement(<any>node.statement, ctx, builder);
+
+        ctx.scope.continueBlock = null;
 
         builder.createBr(conditionBlock);
         builder.setInsertionPoint(conditionBlock);
