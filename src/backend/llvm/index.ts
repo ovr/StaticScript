@@ -70,10 +70,8 @@ export function emitCondition(
 ) {
     const left = buildFromExpression(condition, ctx, builder);
 
-    const leftInt = builder.createZExt(left.llvmValue, llvm.Type.getInt32Ty(ctx.llvmContext));
-
-    const conditionBoolValue = builder.createICmpNE(leftInt, llvm.ConstantInt.get(ctx.llvmContext, 0));
-    builder.createCondBr(conditionBoolValue, positiveBlock, negativeBlock);
+    const conditionBoolValue = left.toBoolean(ctx, builder, condition);
+    builder.createCondBr(conditionBoolValue.llvmValue, positiveBlock, negativeBlock);
 }
 
 export function passFunctionDeclaration(parent: ts.FunctionDeclaration, ctx: Context, builder: llvm.IRBuilder) {

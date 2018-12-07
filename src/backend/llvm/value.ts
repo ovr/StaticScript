@@ -1,5 +1,9 @@
 
 import * as llvm from 'llvm-node';
+import * as ts from 'typescript';
+import {Context} from "./context";
+import UnsupportedError from "../error/unsupported.error";
+import {loadIfNeeded} from "./index";
 
 export enum ValueTypeEnum {
     STRING = 'STRING',
@@ -31,6 +35,42 @@ export class Value {
     constructor(llvmValue: llvm.Value, type?: ValueTypeEnum) {
         this.llvmValue = llvmValue;
         this.type = type || convertLLVMTypeToValueType(llvmValue.type);
+    }
+
+    public toBoolean(ctx: Context, builder: llvm.IRBuilder, node: ts.Node): Value {
+        const value = loadIfNeeded(this, builder);
+
+        if (value.type.isDoubleTy()) {
+            return new Value(
+                builder.createFCmpONE(
+                    value,
+                    llvm.ConstantFP.get(ctx.llvmContext, 0)
+                ),
+                ValueTypeEnum.BOOLEAN
+            );
+        }
+
+        if (value.type.isIntegerTy()) {
+            if (value.type.isIntegerTy(1)) {
+                return new Value(
+                    value,
+                    ValueTypeEnum.BOOLEAN
+                );
+            }
+
+            return new Value(
+                builder.createICmpNE(
+                    value,
+                    llvm.ConstantInt.get(ctx.llvmContext, 0)
+                ),
+                ValueTypeEnum.BOOLEAN
+            );
+        }
+
+        throw new UnsupportedError(
+            node,
+            `Unsupported cast ${this.llvmValue.type} to boolean`
+        );
     }
 
     public isString(): boolean {
