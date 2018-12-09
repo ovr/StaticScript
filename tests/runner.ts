@@ -26,6 +26,20 @@ async function main() {
             ]);
 
             console.log(compileLog.toString());
+
+            const stdoutExecution = execFileSync(path.join(__dirname, '..', 'output', 'main'));
+
+            if (fs.existsSync(path.join(`${testFile}.stdout`))) {
+                const expectedStdout = fs.readFileSync(path.join(`${testFile}.stdout`));
+
+                if (expectedStdout.toString() != stdoutExecution.toString()) {
+                    console.log('Unexpected stdout');
+                    console.log(stdoutExecution.toString());
+                    console.log(expectedStdout.toString());
+
+                    process.exit(1);
+                }
+            }
         }
     } catch (error) {
         console.log(error.output.toString());
