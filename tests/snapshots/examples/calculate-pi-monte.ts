@@ -1,5 +1,6 @@
 
 {
+    // Monte Carlo simulation
     function calculatePI(cycles: number): number {
         let inside = 0;
 
@@ -15,5 +16,6 @@
         return 4.0 * inside / cycles;
     }
 
-    console_log(calculatePI(1000000000));
+    console_log("Monte Carlo simulation");
+    console_log(calculatePI(10000000));
 }
