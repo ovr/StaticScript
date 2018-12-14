@@ -106,6 +106,20 @@ export class NativeTypeResolver {
                         ),
                         true
                     );
+                case 'float32':
+                    return new NativeType(
+                        llvm.Type.getFloatTy(
+                            ctx.llvmContext
+                        ),
+                        true
+                    );
+                case 'float128':
+                    return new NativeType(
+                        llvm.Type.getFP128Ty(
+                            ctx.llvmContext
+                        ),
+                        true
+                    );
                 default:
                     throw new Error(
                         `Unsupported type, "${<string>aliasSymbol.escapedName}"`

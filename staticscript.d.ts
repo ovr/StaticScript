@@ -28,3 +28,7 @@ declare type uint16 = {};
 declare type uint32 = {};
 declare type uint64 = {};
 declare type uint128 = {};
+
+declare type float32 = {};
+declare type float64 = number;
+declare type float128 = {};
