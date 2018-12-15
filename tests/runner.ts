@@ -35,6 +35,8 @@ async function main() {
                 if (expectedStdout.toString() != stdoutExecution.toString()) {
                     console.log('Unexpected stdout');
                     console.log(stdoutExecution.toString());
+
+                    console.log('Expected stdout');
                     console.log(expectedStdout.toString());
 
                     process.exit(1);
