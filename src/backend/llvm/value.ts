@@ -65,7 +65,7 @@ export class ObjectReference implements Value {
     }
 
     getValue(): llvm.Value {
-        throw new Error('It is not a real value, it is ObjectReference (=ↀωↀ=)');
+        return this.llvmValue;
     }
 
     public toBoolean(ctx: Context, builder: llvm.IRBuilder, node: ts.Node): Value {
