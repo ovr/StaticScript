@@ -101,7 +101,9 @@ export function passFunctionDeclaration(parent: ts.FunctionDeclaration, ctx: Con
         parent.parameters.map((parameter) => {
             if (parameter.type) {
                 const nativeType = NativeTypeResolver.getType(ctx.typeChecker.getTypeFromTypeNode(parameter.type), ctx);
-                return nativeType.getType();
+                if (nativeType) {
+                    return nativeType.getType();
+                }
             }
 
             throw new UnsupportedError(
@@ -366,9 +368,12 @@ function declareFunctionFromDefinition(
 ): llvm.Function {
     let fnType = llvm.FunctionType.get(
         stmt.type ? NativeTypeResolver.getType(ctx.typeChecker.getTypeFromTypeNode(stmt.type), ctx).getType() : llvm.Type.getVoidTy(ctx.llvmContext),
-        stmt.parameters.map((parameters) => {
-            if (parameters.type) {
-                return NativeTypeResolver.getType(ctx.typeChecker.getTypeFromTypeNode(parameters.type), ctx).getType()
+        stmt.parameters.map((parameter) => {
+            if (parameter.type) {
+                const nativeType = NativeTypeResolver.getType(ctx.typeChecker.getTypeFromTypeNode(parameter.type), ctx);
+                if (nativeType) {
+                    return nativeType.getType();
+                }
             }
 
             throw new UnsupportedError(
