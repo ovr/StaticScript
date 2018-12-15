@@ -6,6 +6,14 @@ import {NativeType} from "./native-type";
 
 export class NativeTypeResolver {
     static getType(type: ts.Type, ctx: Context): NativeType {
+        if (type.isClass()) {
+            return new NativeType(
+                llvm.Type.getInt8PtrTy(
+                    ctx.llvmContext
+                )
+            );
+        }
+
         if (type.isNumberLiteral() || (<any>type).intrinsicName === 'number') {
             return new NativeType(
                 llvm.Type.getDoubleTy(

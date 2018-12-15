@@ -3,7 +3,7 @@ import * as ts from "typescript";
 import * as llvm from 'llvm-node';
 import {NodeGenerateInterface} from "../node-generate.interface";
 import {Context} from "../context";
-import {Value, ValueTypeEnum} from "../value";
+import {Primitive, Value, ValueTypeEnum} from "../value";
 import UnsupportedError from "../../error/unsupported.error";
 import {buildFromExpression, loadIfNeeded} from "../index";
 
@@ -15,8 +15,8 @@ export class BinaryExpressionCodeGenerator implements NodeGenerateInterface<ts.B
                 const right = buildFromExpression(node.right, ctx, builder);
 
                 builder.createStore(
-                    right.llvmValue,
-                    left.llvmValue,
+                    right.getValue(),
+                    left.getValue(),
                     false
                 );
 
@@ -38,8 +38,8 @@ export class BinaryExpressionCodeGenerator implements NodeGenerateInterface<ts.B
                 const right = this.doExpression(node, ctx, builder);
 
                 builder.createStore(
-                    right.llvmValue,
-                    left.llvmValue,
+                    right.getValue(),
+                    left.getValue(),
                     false
                 );
 
@@ -57,7 +57,7 @@ export class BinaryExpressionCodeGenerator implements NodeGenerateInterface<ts.B
                 const left = buildFromExpression(node.left, ctx, builder);
                 const right = buildFromExpression(node.right, ctx, builder);
 
-                return new Value(
+                return new Primitive(
                     builder.createFAdd(
                         loadIfNeeded(left, builder),
                         loadIfNeeded(right, builder)
@@ -69,7 +69,7 @@ export class BinaryExpressionCodeGenerator implements NodeGenerateInterface<ts.B
                 const left = buildFromExpression(node.left, ctx, builder);
                 const right = buildFromExpression(node.right, ctx, builder);
 
-                return new Value(
+                return new Primitive(
                     builder.createFSub(
                         loadIfNeeded(left, builder),
                         loadIfNeeded(right, builder)
@@ -82,7 +82,7 @@ export class BinaryExpressionCodeGenerator implements NodeGenerateInterface<ts.B
                 const left = buildFromExpression(node.left, ctx, builder);
                 const right = buildFromExpression(node.right, ctx, builder);
 
-                return new Value(
+                return new Primitive(
                     builder.createFMul(
                         loadIfNeeded(left, builder),
                         loadIfNeeded(right, builder)
@@ -95,7 +95,7 @@ export class BinaryExpressionCodeGenerator implements NodeGenerateInterface<ts.B
                 const left = buildFromExpression(node.left, ctx, builder);
                 const right = buildFromExpression(node.right, ctx, builder);
 
-                return new Value(
+                return new Primitive(
                     builder.createXor(
                         loadIfNeeded(left, builder),
                         loadIfNeeded(right, builder)
@@ -108,7 +108,7 @@ export class BinaryExpressionCodeGenerator implements NodeGenerateInterface<ts.B
                 const left = buildFromExpression(node.left, ctx, builder);
                 const right = buildFromExpression(node.right, ctx, builder);
 
-                return new Value(
+                return new Primitive(
                     builder.createAShr(
                         loadIfNeeded(left, builder),
                         loadIfNeeded(right, builder)
@@ -121,7 +121,7 @@ export class BinaryExpressionCodeGenerator implements NodeGenerateInterface<ts.B
                 const left = buildFromExpression(node.left, ctx, builder);
                 const right = buildFromExpression(node.right, ctx, builder);
 
-                return new Value(
+                return new Primitive(
                     builder.createShl(
                         loadIfNeeded(left, builder),
                         loadIfNeeded(right, builder)
@@ -134,7 +134,7 @@ export class BinaryExpressionCodeGenerator implements NodeGenerateInterface<ts.B
                 const left = buildFromExpression(node.left, ctx, builder);
                 const right = buildFromExpression(node.right, ctx, builder);
 
-                return new Value(
+                return new Primitive(
                     builder.createFDiv(
                         loadIfNeeded(left, builder),
                         loadIfNeeded(right, builder)
@@ -147,7 +147,7 @@ export class BinaryExpressionCodeGenerator implements NodeGenerateInterface<ts.B
                 const left = buildFromExpression(node.left, ctx, builder);
                 const right = buildFromExpression(node.right, ctx, builder);
 
-                return new Value(
+                return new Primitive(
                     builder.createFRem(
                         loadIfNeeded(left, builder),
                         loadIfNeeded(right, builder)
@@ -170,7 +170,7 @@ export class BinaryExpressionCodeGenerator implements NodeGenerateInterface<ts.B
                 //     llvm.Type.getInt32Ty(ctx.llvmContext)
                 // );
 
-                return new Value(
+                return new Primitive(
                     builder.createFCmpOGT(
                         loadIfNeeded(left, builder),
                         loadIfNeeded(right, builder),
@@ -196,7 +196,7 @@ export class BinaryExpressionCodeGenerator implements NodeGenerateInterface<ts.B
                 //     llvm.Type.getInt32Ty(ctx.llvmContext)
                 // );
 
-                return new Value(
+                return new Primitive(
                     builder.createFCmpOLT(
                         loadIfNeeded(left, builder),
                         loadIfNeeded(right, builder),

@@ -9,7 +9,7 @@ import {RUNTIME_DEFINITION_FILE} from "@static-script/runtime";
 import {LANGUAGE_DEFINITION_FILE} from "../../constants";
 import {CMangler} from "./c.mangler";
 import {ManglerInterface} from "./mangler.interface";
-import {Value, ValueTypeEnum} from "./value";
+import {ClassReference, FunctionReference, Primitive, Value, ValueTypeEnum} from "./value";
 import {BinaryExpressionCodeGenerator} from "./code-generation/binary-expression";
 import {ReturnStatementCodeGenerator} from "./code-generation/return-statement";
 import {ForStatementGenerator} from "./code-generation/for-statement";
@@ -18,6 +18,7 @@ import {WhileStatementGenerator} from "./code-generation/while-statement";
 import {BreakStatementGenerator} from "./code-generation/break-statement";
 import {ContinueStatementGenerator} from "./code-generation/continue-statement";
 import {ClassDeclarationGenerator} from "./code-generation/class-statement";
+import {NewExpressionGenerator} from "./code-generation/new-expression";
 
 export function passIfStatement(parent: ts.IfStatement, ctx: Context, builder: llvm.IRBuilder) {
     const positiveBlock = llvm.BasicBlock.create(ctx.llvmContext, "if.true");
@@ -72,7 +73,7 @@ export function emitCondition(
     const left = buildFromExpression(condition, ctx, builder);
 
     const conditionBoolValue = left.toBoolean(ctx, builder, condition);
-    builder.createCondBr(conditionBoolValue.llvmValue, positiveBlock, negativeBlock);
+    builder.createCondBr(conditionBoolValue.getValue(), positiveBlock, negativeBlock);
 }
 
 export function passFunctionDeclaration(parent: ts.FunctionDeclaration, ctx: Context, builder: llvm.IRBuilder) {
@@ -109,7 +110,7 @@ export function passFunctionDeclaration(parent: ts.FunctionDeclaration, ctx: Con
     for (const argument of fn.getArguments()) {
         const parameter = parent.parameters[argument.argumentNumber];
         if (parameter) {
-            ctx.scope.variables.set(<string>(<ts.Identifier>parameter.name).escapedText, new Value(argument));
+            ctx.scope.variables.set(<string>(<ts.Identifier>parameter.name).escapedText, new Primitive(argument));
         } else {
             throw new UnsupportedError(
                 parameter,
@@ -149,7 +150,7 @@ export function passFunctionDeclaration(parent: ts.FunctionDeclaration, ctx: Con
 }
 
 export function buildFromStringValue(node: ts.StringLiteral, ctx: Context, builder: llvm.IRBuilder): Value {
-    return new Value(
+    return new Primitive(
         builder.createGlobalStringPtr(
             node.text,
         ),
@@ -158,7 +159,7 @@ export function buildFromStringValue(node: ts.StringLiteral, ctx: Context, build
 }
 
 export function buildFromTrueKeyword(node: ts.BooleanLiteral, ctx: Context, builder: llvm.IRBuilder): Value {
-    return new Value(
+    return new Primitive(
         llvm.ConstantInt.get(
             ctx.llvmContext,
             1,
@@ -170,7 +171,7 @@ export function buildFromTrueKeyword(node: ts.BooleanLiteral, ctx: Context, buil
 }
 
 export function buildFromFalseKeyword(node: ts.BooleanLiteral, ctx: Context, builder: llvm.IRBuilder): Value {
-    return new Value(
+    return new Primitive(
         llvm.ConstantInt.get(
             ctx.llvmContext,
             0,
@@ -188,13 +189,13 @@ function buildFromNumericLiteral(
     nativeType?: NativeType
 ): Value {
     if (!nativeType || nativeType.getType().isDoubleTy()) {
-        return new Value(
+        return new Primitive(
             llvm.ConstantFP.get(ctx.llvmContext, parseFloat(value.text)),
             ValueTypeEnum.DOUBLE
         );
     }
 
-    return new Value(
+    return new Primitive(
         llvm.ConstantInt.get(
             ctx.llvmContext,
             parseInt(value.text),
@@ -220,7 +221,7 @@ function buildFromPostfixUnaryExpression(
 
             builder.createStore(
                 next,
-                left.llvmValue,
+                left.getValue(),
                 false
             );
 
@@ -236,7 +237,7 @@ function buildFromPostfixUnaryExpression(
 
             builder.createStore(
                 next,
-                left.llvmValue,
+                left.getValue(),
                 false
             );
 
@@ -317,7 +318,7 @@ function buildCalleFromCallExpression(
         }
     }
 
-    return buildFromExpression(expr.expression, ctx, builder).llvmValue;
+    return buildFromExpression(expr.expression, ctx, builder).getValue();
 }
 
 function buildFromCallExpression(
@@ -339,7 +340,7 @@ function buildFromCallExpression(
         );
     });
 
-    return new Value(
+    return new Primitive(
         builder.createCall(
             callle,
             args,
@@ -382,9 +383,14 @@ export function buildFromIdentifier(identifier: ts.Identifier, ctx: Context, bui
         return variable;
     }
 
+    const clazz = ctx.scope.classes.get(<string>identifier.escapedText);
+    if (clazz) {
+        return new ClassReference(clazz);
+    }
+
     const fn = ctx.llvmModule.getFunction(<string>identifier.escapedText);
     if (fn) {
-        return new Value(fn);
+        return new FunctionReference(fn);
     }
 
     throw new UnsupportedError(
@@ -396,6 +402,8 @@ export function buildFromIdentifier(identifier: ts.Identifier, ctx: Context, bui
 
 export function buildFromExpression(block: ts.Expression, ctx: Context, builder: llvm.IRBuilder, nativeType?: NativeType): Value {
     switch (block.kind) {
+        case ts.SyntaxKind.NewExpression:
+            return new NewExpressionGenerator().generate(<any>block, ctx, builder);
         case ts.SyntaxKind.Identifier:
             return buildFromIdentifier(<any>block, ctx, builder);
         case ts.SyntaxKind.NumericLiteral:
@@ -444,12 +452,12 @@ export function passVariableDeclaration(block: ts.VariableDeclaration, ctx: Cont
             );
 
             builder.createStore(
-                defaultValue.llvmValue,
+                defaultValue.getValue(),
                 allocate,
                 false
             );
 
-            ctx.scope.variables.set(<string>block.name.escapedText, new Value(allocate));
+            ctx.scope.variables.set(<string>block.name.escapedText, new Primitive(allocate));
         }
 
         return;
@@ -532,11 +540,11 @@ export function passStatement(stmt: ts.Statement, ctx: Context, builder: llvm.IR
 }
 
 export function loadIfNeeded(value: Value, builder: llvm.IRBuilder): llvm.Value {
-    if (value.llvmValue.type.isPointerTy() && !value.isString()) {
-        return builder.createLoad(value.llvmValue);
+    if (value.getValue().type.isPointerTy() && !value.isString()) {
+        return builder.createLoad(value.getValue());
     }
 
-    return value.llvmValue;
+    return value.getValue();
 }
 
 function passBlockStatement(node: ts.Block, ctx: Context, builder: llvm.IRBuilder) {

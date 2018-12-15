@@ -31,6 +31,8 @@ export class ClassDeclarationGenerator implements NodeGenerateInterface<ts.Class
             }
         ));
 
+        ctx.scope.classes.set(node.name ? <string>node.name.escapedText : 'class_' + Math.random(), struct);
+
         if (node.members) {
             node.members.forEach(
                 (member) => {

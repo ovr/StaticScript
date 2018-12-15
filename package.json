@@ -27,6 +27,6 @@
   "dependencies": {
     "@static-script/runtime": "^0.9.1",
     "llvm-node": "github:MichaReiser/llvm-node#5d6cbc993ba20a7fcd5d59aed506c729755e33f1",
-    "typescript": "^3.1.1"
+    "typescript": "3.2.2"
   }
 }
