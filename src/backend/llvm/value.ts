@@ -28,9 +28,82 @@ export function convertLLVMTypeToValueType(type: llvm.Type) {
     }
 }
 
-export class Value {
+export interface Value {
+    getValue(): llvm.Value;
+
+    toBoolean(ctx: Context, builder: llvm.IRBuilder, node: ts.Node): Value;
+    isString(): boolean;
+}
+
+export class FunctionReference implements Value {
+    public llvmValue: llvm.Function;
+
+    constructor(llvmValue: llvm.Function) {
+        this.llvmValue = llvmValue;
+    }
+
+    getValue(): llvm.Value {
+        return this.llvmValue;
+    }
+
+    public toBoolean(ctx: Context, builder: llvm.IRBuilder, node: ts.Node): Value {
+        throw new UnsupportedError(node, 'Cannot cast ClassReference to boolean');
+    }
+
+    public isString(): boolean {
+        return false;
+    }
+}
+
+export class ObjectReference implements Value {
+    public classReference: ClassReference;
+    public llvmValue: llvm.AllocaInst;
+
+    constructor(classReference: ClassReference, llvmValue: llvm.AllocaInst) {
+        this.classReference = classReference;
+        this.llvmValue = llvmValue;
+    }
+
+    getValue(): llvm.Value {
+        throw new Error('It is not a real value, it is ObjectReference (=ↀωↀ=)');
+    }
+
+    public toBoolean(ctx: Context, builder: llvm.IRBuilder, node: ts.Node): Value {
+        throw new UnsupportedError(node, 'Cannot cast ClassReference to boolean');
+    }
+
+    public isString(): boolean {
+        return false;
+    }
+}
+
+export class ClassReference implements Value {
+    public structType: llvm.StructType;
+
+    getValue(): llvm.Value {
+        throw new Error('It is not a real value, it is ClassReference (=ↀωↀ=)');
+    }
+
+    constructor(structType: llvm.StructType) {
+        this.structType = structType;
+    }
+
+    public toBoolean(ctx: Context, builder: llvm.IRBuilder, node: ts.Node): Value {
+        throw new UnsupportedError(node, 'Cannot cast ClassReference to boolean');
+    }
+
+    public isString(): boolean {
+        return false;
+    }
+}
+
+export class Primitive implements Value {
     public llvmValue: llvm.Value;
     public type: ValueTypeEnum;
+
+    getValue(): llvm.Value {
+        return this.llvmValue;
+    }
 
     constructor(llvmValue: llvm.Value, type?: ValueTypeEnum) {
         this.llvmValue = llvmValue;
@@ -41,7 +114,7 @@ export class Value {
         const value = loadIfNeeded(this, builder);
 
         if (value.type.isDoubleTy()) {
-            return new Value(
+            return new Primitive(
                 builder.createFCmpONE(
                     value,
                     llvm.ConstantFP.get(ctx.llvmContext, 0)
@@ -52,13 +125,13 @@ export class Value {
 
         if (value.type.isIntegerTy()) {
             if (value.type.isIntegerTy(1)) {
-                return new Value(
+                return new Primitive(
                     value,
                     ValueTypeEnum.BOOLEAN
                 );
             }
 
-            return new Value(
+            return new Primitive(
                 builder.createICmpNE(
                     value,
                     llvm.ConstantInt.get(ctx.llvmContext, 0)
