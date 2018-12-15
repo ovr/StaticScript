@@ -64,7 +64,7 @@ export class ObjectReference implements Value {
         this.llvmValue = llvmValue;
     }
 
-    getValue(): llvm.Value {
+    getValue(): llvm.AllocaInst {
         return this.llvmValue;
     }
 

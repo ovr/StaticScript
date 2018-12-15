@@ -9,7 +9,7 @@ import {RUNTIME_DEFINITION_FILE} from "@static-script/runtime";
 import {LANGUAGE_DEFINITION_FILE} from "../../constants";
 import {CMangler} from "./c.mangler";
 import {ManglerInterface} from "./mangler.interface";
-import {ClassReference, FunctionReference, Primitive, Value, ValueTypeEnum} from "./value";
+import {ClassReference, FunctionReference, ObjectReference, Primitive, Value, ValueTypeEnum} from "./value";
 import {BinaryExpressionCodeGenerator} from "./code-generation/binary-expression";
 import {ReturnStatementCodeGenerator} from "./code-generation/return-statement";
 import {ForStatementGenerator} from "./code-generation/for-statement";
@@ -445,17 +445,23 @@ export function passVariableDeclaration(block: ts.VariableDeclaration, ctx: Cont
         const defaultValue = buildFromExpression(block.initializer, ctx, builder, nativeType);
 
         if (block.name.kind == ts.SyntaxKind.Identifier) {
-            const allocate = builder.createAlloca(
-                nativeType.getType(),
-                undefined,
-                <string>block.name.escapedText
-            );
+            let allocate: llvm.AllocaInst;
 
-            builder.createStore(
-                defaultValue.getValue(),
-                allocate,
-                false
-            );
+            if (defaultValue instanceof ObjectReference) {
+                allocate = defaultValue.getValue();
+            } else {
+                allocate = builder.createAlloca(
+                    nativeType.getType(),
+                    undefined,
+                    <string>block.name.escapedText
+                );
+
+                builder.createStore(
+                    defaultValue.getValue(),
+                    allocate,
+                    false
+                );
+            }
 
             ctx.scope.variables.set(<string>block.name.escapedText, new Primitive(allocate));
         }
