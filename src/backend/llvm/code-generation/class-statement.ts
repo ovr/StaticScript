@@ -20,7 +20,10 @@ export class ClassDeclarationGenerator implements NodeGenerateInterface<ts.Class
 
         const properties = ctx.typeChecker.getPropertiesOfType(classType);
 
-        const struct = llvm.StructType.get(ctx.llvmContext, properties.map(
+        const structName = node.name ? <string>node.name.escapedText : 'class_' + Math.random();
+        const struct = llvm.StructType.create(ctx.llvmContext, structName);
+
+        struct.setBody(properties.map(
             (property: ts.Symbol) => {
                 const nativeType = NativeTypeResolver.getType(
                     ctx.typeChecker.getTypeOfSymbolAtLocation(property, node),
@@ -31,7 +34,7 @@ export class ClassDeclarationGenerator implements NodeGenerateInterface<ts.Class
             }
         ));
 
-        ctx.scope.classes.set(node.name ? <string>node.name.escapedText : 'class_' + Math.random(), struct);
+        ctx.scope.classes.set(structName, struct);
 
         if (node.members) {
             node.members.forEach(
