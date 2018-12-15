@@ -434,37 +434,32 @@ export function buildFromExpression(block: ts.Expression, ctx: Context, builder:
 }
 
 export function passVariableDeclaration(block: ts.VariableDeclaration, ctx: Context, builder: llvm.IRBuilder) {
-    if (block.initializer) {
-        const type = ctx.typeChecker.getTypeAtLocation(block);
-
-        const nativeType = NativeTypeResolver.getType(
-            type,
+    if (block.initializer && block.name.kind == ts.SyntaxKind.Identifier) {
+        const nativeTypeForDefaultValue = NativeTypeResolver.getType(
+            ctx.typeChecker.getTypeFromTypeNode(block.type),
             ctx
         );
 
-        const defaultValue = buildFromExpression(block.initializer, ctx, builder, nativeType);
+        let allocate: llvm.AllocaInst;
 
-        if (block.name.kind == ts.SyntaxKind.Identifier) {
-            let allocate: llvm.AllocaInst;
+        const defaultValue = buildFromExpression(block.initializer, ctx, builder, nativeTypeForDefaultValue);
+        if (defaultValue instanceof ObjectReference) {
+            allocate = defaultValue.getValue();
+        } else {
+            allocate = builder.createAlloca(
+                defaultValue.getValue().type,
+                undefined,
+                <string>block.name.escapedText
+            );
 
-            if (defaultValue instanceof ObjectReference) {
-                allocate = defaultValue.getValue();
-            } else {
-                allocate = builder.createAlloca(
-                    nativeType.getType(),
-                    undefined,
-                    <string>block.name.escapedText
-                );
-
-                builder.createStore(
-                    defaultValue.getValue(),
-                    allocate,
-                    false
-                );
-            }
-
-            ctx.scope.variables.set(<string>block.name.escapedText, new Primitive(allocate));
+            builder.createStore(
+                defaultValue.getValue(),
+                allocate,
+                false
+            );
         }
+
+        ctx.scope.variables.set(<string>block.name.escapedText, new Primitive(allocate));
 
         return;
     }
