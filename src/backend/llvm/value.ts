@@ -55,6 +55,28 @@ export class FunctionReference implements Value {
     }
 }
 
+export class ArrayReference implements Value {
+    public elementType: llvm.Type;
+    public llvmValue: llvm.AllocaInst;
+
+    constructor(elementType: llvm.Type, llvmValue: llvm.AllocaInst) {
+        this.elementType = elementType;
+        this.llvmValue = llvmValue;
+    }
+
+    getValue(): llvm.AllocaInst {
+        return this.llvmValue;
+    }
+
+    public toBoolean(ctx: Context, builder: llvm.IRBuilder, node: ts.Node): Value {
+        throw new UnsupportedError(node, 'Cannot cast ClassReference to boolean');
+    }
+
+    public isString(): boolean {
+        return false;
+    }
+}
+
 export class ObjectReference implements Value {
     public classReference: ClassReference;
     public llvmValue: llvm.AllocaInst;

@@ -9,7 +9,15 @@ import {RUNTIME_DEFINITION_FILE} from "@static-script/runtime";
 import {LANGUAGE_DEFINITION_FILE} from "../../constants";
 import {CMangler} from "./c.mangler";
 import {ManglerInterface} from "./mangler.interface";
-import {ClassReference, FunctionReference, ObjectReference, Primitive, Value, ValueTypeEnum} from "./value";
+import {
+    ArrayReference,
+    ClassReference,
+    FunctionReference,
+    ObjectReference,
+    Primitive,
+    Value,
+    ValueTypeEnum
+} from "./value";
 import {BinaryExpressionCodeGenerator} from "./code-generation/binary-expression";
 import {ReturnStatementCodeGenerator} from "./code-generation/return-statement";
 import {ForStatementGenerator} from "./code-generation/for-statement";
@@ -19,6 +27,8 @@ import {BreakStatementGenerator} from "./code-generation/break-statement";
 import {ContinueStatementGenerator} from "./code-generation/continue-statement";
 import {ClassDeclarationGenerator} from "./code-generation/class-statement";
 import {NewExpressionGenerator} from "./code-generation/new-expression";
+import {ArrayLiteralExpressionCodeGenerator} from "./code-generation/array-literal-expression";
+import {ArrayLiteralExpression} from "typescript";
 
 export function passIfStatement(parent: ts.IfStatement, ctx: Context, builder: llvm.IRBuilder) {
     const positiveBlock = llvm.BasicBlock.create(ctx.llvmContext, "if.true");
@@ -408,6 +418,8 @@ export function buildFromExpression(block: ts.Expression, ctx: Context, builder:
             return buildFromIdentifier(<any>block, ctx, builder);
         case ts.SyntaxKind.NumericLiteral:
             return buildFromNumericLiteral(<any>block, ctx, builder, nativeType);
+        case ts.SyntaxKind.ArrayLiteralExpression:
+            return new ArrayLiteralExpressionCodeGenerator().generate(block as ArrayLiteralExpression, ctx, builder);
         case ts.SyntaxKind.StringLiteral:
             return buildFromStringValue(<any>block, ctx, builder);
         case ts.SyntaxKind.TrueKeyword:
@@ -443,7 +455,7 @@ export function passVariableDeclaration(block: ts.VariableDeclaration, ctx: Cont
         let allocate: llvm.AllocaInst;
 
         const defaultValue = buildFromExpression(block.initializer, ctx, builder, nativeTypeForDefaultValue);
-        if (defaultValue instanceof ObjectReference) {
+        if (defaultValue instanceof ObjectReference || defaultValue instanceof ArrayReference) {
             allocate = defaultValue.getValue();
         } else {
             allocate = builder.createAlloca(
