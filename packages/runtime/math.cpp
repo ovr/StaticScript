@@ -3,6 +3,10 @@
 #include "math.h"
 #include "machine.h"
 
+LIBRARY_EXPORT double Math__abs(double number) {
+    return std::abs(number);
+}
+
 LIBRARY_EXPORT double Math__pow(double number, double power) {
     return std::pow(number, power);
 }
