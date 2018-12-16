@@ -11,21 +11,29 @@ export class ArrayLiteralExpressionCodeGenerator implements NodeGenerateInterfac
         // const elementType = NativeTypeResolver.getType(type, ctx);
 
         // @todo Fix this hardcore...
-        const elementType = llvm.Type.getDoublePtrTy(ctx.llvmContext);
-
-        const structType = llvm.StructType.create(ctx.llvmContext, 'array<int>');
-        structType.setBody([
-            elementType,
-            llvm.Type.getInt32Ty(ctx.llvmContext),
-        ]);
+        const structType = ArrayLiteralExpressionCodeGenerator.buildTypedArrayStructLLVMType(
+            llvm.Type.getDoubleTy(ctx.llvmContext),
+            ctx,
+            'array<double>'
+        );
 
         const allocate = builder.createAlloca(
             structType
         );
 
         return new ArrayReference(
-            elementType,
+            structType.getElementType(0),
             allocate
         );
+    }
+
+    static buildTypedArrayStructLLVMType(elementType: llvm.Type, ctx: Context, name: string): llvm.StructType {
+        const structType = llvm.StructType.create(ctx.llvmContext, name);
+        structType.setBody([
+            elementType,
+            llvm.Type.getInt32Ty(ctx.llvmContext),
+        ]);
+
+        return structType;
     }
 }
