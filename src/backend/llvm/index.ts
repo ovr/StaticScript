@@ -29,49 +29,7 @@ import {ClassDeclarationGenerator} from "./code-generation/class-statement";
 import {NewExpressionGenerator} from "./code-generation/new-expression";
 import {ArrayLiteralExpressionCodeGenerator} from "./code-generation/array-literal-expression";
 import {ArrayLiteralExpression} from "typescript";
-
-export function passIfStatement(parent: ts.IfStatement, ctx: Context, builder: llvm.IRBuilder) {
-    const positiveBlock = llvm.BasicBlock.create(ctx.llvmContext, "if.true");
-    ctx.scope.enclosureFunction.llvmFunction.addBasicBlock(positiveBlock);
-
-    const next = llvm.BasicBlock.create(ctx.llvmContext, "if.end");
-    ctx.scope.enclosureFunction.llvmFunction.addBasicBlock(next);
-
-    if (parent.elseStatement) {
-        const negativeBlock = llvm.BasicBlock.create(ctx.llvmContext, "if.false");
-        ctx.scope.enclosureFunction.llvmFunction.addBasicBlock(negativeBlock);
-
-        emitCondition(
-            parent.expression,
-            ctx,
-            builder,
-            positiveBlock,
-            negativeBlock
-        );
-
-        builder.setInsertionPoint(negativeBlock);
-        passNode(parent.elseStatement, ctx, builder);
-
-        builder.createBr(next);
-    } else {
-        emitCondition(
-            parent.expression,
-            ctx,
-            builder,
-            positiveBlock,
-            next
-        );
-    }
-
-    builder.setInsertionPoint(positiveBlock);
-    passNode(parent.thenStatement, ctx, builder);
-
-    if (!positiveBlock.getTerminator()) {
-        builder.createBr(next);
-    }
-
-    builder.setInsertionPoint(next);
-}
+import {IfStatementCodeGenerator} from "./code-generation/if-statement";
 
 export function emitCondition(
     condition: ts.Expression,
@@ -502,7 +460,7 @@ export function passVariableStatement(block: ts.VariableStatement, ctx: Context,
 export function passStatement(stmt: ts.Statement, ctx: Context, builder: llvm.IRBuilder) {
     switch (stmt.kind) {
         case ts.SyntaxKind.Block:
-            passBlockStatement(<any>stmt, ctx, builder);
+            passBlockStatement(stmt as ts.Block, ctx, builder);
             break;
         case ts.SyntaxKind.VariableDeclaration:
             passVariableDeclaration(<any>stmt, ctx, builder);
@@ -517,31 +475,31 @@ export function passStatement(stmt: ts.Statement, ctx: Context, builder: llvm.IR
             buildFromExpression(<any>stmt, ctx, builder);
             break;
         case ts.SyntaxKind.FunctionDeclaration:
-            passFunctionDeclaration(<any>stmt, ctx, builder);
+            passFunctionDeclaration(stmt as ts.FunctionDeclaration, ctx, builder);
             break;
         case ts.SyntaxKind.ReturnStatement:
-            new ReturnStatementCodeGenerator().generate(<any>stmt, ctx, builder);
+            new ReturnStatementCodeGenerator().generate(stmt as ts.ReturnStatement, ctx, builder);
             break;
         case ts.SyntaxKind.ClassDeclaration:
-            new ClassDeclarationGenerator().generate(<any>stmt, ctx, builder);
+            new ClassDeclarationGenerator().generate(stmt as ts.ClassDeclaration, ctx, builder);
             break;
         case ts.SyntaxKind.BreakStatement:
-            new BreakStatementGenerator().generate(<any>stmt, ctx, builder);
+            new BreakStatementGenerator().generate(stmt as ts.BreakStatement, ctx, builder);
             break;
         case ts.SyntaxKind.ContinueStatement:
-            new ContinueStatementGenerator().generate(<any>stmt, ctx, builder);
+            new ContinueStatementGenerator().generate(stmt as ts.ContinueStatement, ctx, builder);
             break;
         case ts.SyntaxKind.IfStatement:
-            passIfStatement(<any>stmt, ctx, builder);
+            new IfStatementCodeGenerator().generate(stmt as ts.IfStatement, ctx, builder);
             break;
         case ts.SyntaxKind.ForStatement:
-            new ForStatementGenerator().generate(<any>stmt, ctx, builder);
+            new ForStatementGenerator().generate(stmt as ts.ForStatement, ctx, builder);
             break;
         case ts.SyntaxKind.DoStatement:
-            new DoStatementGenerator().generate(<any>stmt, ctx, builder);
+            new DoStatementGenerator().generate(stmt as ts.DoStatement, ctx, builder);
             break;
         case ts.SyntaxKind.WhileStatement:
-            new WhileStatementGenerator().generate(<any>stmt, ctx, builder);
+            new WhileStatementGenerator().generate(stmt as ts.WhileStatement, ctx, builder);
             break;
         case ts.SyntaxKind.BinaryExpression:
             new BinaryExpressionCodeGenerator().generate(<any>stmt, ctx, builder);
@@ -571,7 +529,7 @@ function passBlockStatement(node: ts.Block, ctx: Context, builder: llvm.IRBuilde
     }
 }
 
-function passNode(node: ts.Node, ctx: Context, builder: llvm.IRBuilder) {
+export function passNode(node: ts.Node, ctx: Context, builder: llvm.IRBuilder) {
     switch (node.kind) {
         case ts.SyntaxKind.Block:
             passBlockStatement(<any>node, ctx, builder);
