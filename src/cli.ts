@@ -34,8 +34,8 @@ const cliOptions = parseCommandLine();
 
 const options = {
     lib: [
+        path.join(__dirname, '..', 'staticscript.d.ts'),
         RUNTIME_DEFINITION_FILE,
-        path.join(__dirname, '..', 'staticscript.d.ts')
     ],
     types: []
 };
