@@ -4,17 +4,22 @@ import * as llvm from 'llvm-node';
 import {NodeGenerateInterface} from "../node-generate.interface";
 import {Context} from "../context";
 import {ArrayReference} from "../value";
+import {NativeType} from "../native-type";
+import UnsupportedError from "../../error";
 
 export class ArrayLiteralExpressionCodeGenerator implements NodeGenerateInterface<ts.ArrayLiteralExpression, ArrayReference> {
-    generate(node: ts.ArrayLiteralExpression, ctx: Context, builder: llvm.IRBuilder): ArrayReference {
-        // const type = ctx.typeChecker.getTypeAtLocation(node);
-        // const elementType = NativeTypeResolver.getType(type, ctx);
+    generate(node: ts.ArrayLiteralExpression, ctx: Context, builder: llvm.IRBuilder, nativeType?: NativeType): ArrayReference {
+        if (!nativeType) {
+            throw new UnsupportedError(
+                node,
+                'NativeTypeResolver didnt resolve type of this array'
+            );
+        }
 
-        // @todo Fix this hardcore...
         const structType = ArrayLiteralExpressionCodeGenerator.buildTypedArrayStructLLVMType(
-            llvm.Type.getDoubleTy(ctx.llvmContext),
+            nativeType.getType(),
             ctx,
-            'array<double>'
+            `array<${nativeType.getType().toString()}>`
         );
 
         const allocate = builder.createAlloca(

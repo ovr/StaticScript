@@ -14,6 +14,16 @@ export class NativeTypeResolver {
             );
         }
 
+        /**
+         * @todo Super hardcoded
+         */
+        if (type.symbol && <string>type.symbol.escapedName === 'Array' && (<ts.GenericType>type).typeArguments) {
+            const genericType = type as ts.GenericType;
+            return NativeTypeResolver.getType(genericType.typeArguments[0], ctx);
+        }
+
+        const a = ctx.typeChecker.getApparentType(type);
+
         if (type.isStringLiteral() || (<any>type).intrinsicName === 'string') {
             return new NativeType(
                 llvm.Type.getInt8PtrTy(

@@ -382,7 +382,7 @@ export function buildFromExpression(block: ts.Expression, ctx: Context, builder:
         case ts.SyntaxKind.NumericLiteral:
             return buildFromNumericLiteral(<any>block, ctx, builder, nativeType);
         case ts.SyntaxKind.ArrayLiteralExpression:
-            return new ArrayLiteralExpressionCodeGenerator().generate(block as ArrayLiteralExpression, ctx, builder);
+            return new ArrayLiteralExpressionCodeGenerator().generate(block as ArrayLiteralExpression, ctx, builder, nativeType);
         case ts.SyntaxKind.StringLiteral:
             return buildFromStringValue(<any>block, ctx, builder);
         case ts.SyntaxKind.TrueKeyword:
