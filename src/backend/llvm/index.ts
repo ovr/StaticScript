@@ -30,6 +30,7 @@ import {NewExpressionGenerator} from "./code-generation/new-expression";
 import {ArrayLiteralExpressionCodeGenerator} from "./code-generation/array-literal-expression";
 import {ArrayLiteralExpression} from "typescript";
 import {IfStatementCodeGenerator} from "./code-generation/if-statement";
+import {CallExpressionCodeGenerator} from "./code-generation/call-expression";
 
 export function emitCondition(
     condition: ts.Expression,
@@ -244,7 +245,7 @@ function mangleNameFromDecleration(
 }
 
 
-function buildCalleFromCallExpression(
+export function buildCalleFromCallExpression(
     expr: ts.CallExpression,
     ctx: Context,
     builder: llvm.IRBuilder
@@ -289,33 +290,6 @@ function buildCalleFromCallExpression(
     }
 
     return buildFromExpression(expr.expression, ctx, builder).getValue();
-}
-
-function buildFromCallExpression(
-    expr: ts.CallExpression,
-    ctx: Context,
-    builder: llvm.IRBuilder
-): Value {
-    const callle = buildCalleFromCallExpression(expr, ctx, builder);
-    if (!callle) {
-        throw new UnsupportedError(
-            expr,
-            `We cannot prepare expression to call this function, ${expr.expression}`
-        );
-    }
-
-    const args = expr.arguments.map((expr) => {
-        return loadIfNeeded(
-            buildFromExpression(<any>expr, ctx, builder), builder
-        );
-    });
-
-    return new Primitive(
-        builder.createCall(
-            callle,
-            args,
-        )
-    );
 }
 
 function declareFunctionFromDefinition(
@@ -394,7 +368,7 @@ export function buildFromExpression(block: ts.Expression, ctx: Context, builder:
         case ts.SyntaxKind.PostfixUnaryExpression:
             return buildFromPostfixUnaryExpression(<any>block, ctx, builder);
         case ts.SyntaxKind.CallExpression:
-            return <any>buildFromCallExpression(<any>block, ctx, builder);
+            return new CallExpressionCodeGenerator().generate(<any>block, ctx, builder);
         case ts.SyntaxKind.ExpressionStatement:
             return <any>buildFromExpression((<any>block).expression, ctx, builder);
         case ts.SyntaxKind.ParenthesizedExpression: {
