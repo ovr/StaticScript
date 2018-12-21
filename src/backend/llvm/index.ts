@@ -245,47 +245,61 @@ function mangleNameFromDecleration(
 }
 
 
+export function buildCalleFromSignature(
+    signature: ts.Signature,
+    ctx: Context,
+    builder: llvm.IRBuilder
+): llvm.Function|null {
+    if (ctx.signature.has(signature)) {
+        return ctx.signature.get(signature);
+    }
+
+    const declaration = <ts.SignatureDeclaration>signature.declaration;
+    if (declaration.name) {
+        const sourceFile = declaration.getSourceFile();
+
+        if (sourceFile.fileName === RUNTIME_DEFINITION_FILE) {
+            const llvmFunction = declareFunctionFromDefinition(
+                <ts.FunctionDeclaration>declaration,
+                ctx,
+                builder,
+                mangleNameFromDecleration(declaration, ctx, CPPMangler)
+            );
+
+            ctx.signature.set(signature, llvmFunction);
+
+            return llvmFunction;
+        }
+
+        if (sourceFile.fileName === LANGUAGE_DEFINITION_FILE) {
+            const llvmFunction = declareFunctionFromDefinition(
+                <ts.FunctionDeclaration>declaration,
+                ctx,
+                builder,
+                mangleNameFromDecleration(declaration, ctx, CMangler)
+            );
+
+
+            ctx.signature.set(signature, llvmFunction);
+
+            return llvmFunction;
+        }
+    }
+
+    return null;
+}
+
+
 export function buildCalleFromCallExpression(
     expr: ts.CallExpression,
     ctx: Context,
     builder: llvm.IRBuilder
 ) {
-    const calleSignature = ctx.typeChecker.getResolvedSignature(expr);
-    if (calleSignature) {
-        if (ctx.signature.has(calleSignature)) {
-            return ctx.signature.get(calleSignature);
-        }
-
-        const declaration = <ts.SignatureDeclaration>calleSignature.declaration;
-        if (declaration.name) {
-            const sourceFile = declaration.getSourceFile();
-
-            if (sourceFile.fileName === RUNTIME_DEFINITION_FILE) {
-                const llvmFunction = declareFunctionFromDefinition(
-                    <ts.FunctionDeclaration>declaration,
-                    ctx,
-                    builder,
-                    mangleNameFromDecleration(declaration, ctx, CPPMangler)
-                );
-
-                ctx.signature.set(calleSignature, llvmFunction);
-
-                return llvmFunction;
-            }
-
-            if (sourceFile.fileName === LANGUAGE_DEFINITION_FILE) {
-                const llvmFunction = declareFunctionFromDefinition(
-                    <ts.FunctionDeclaration>declaration,
-                    ctx,
-                    builder,
-                    mangleNameFromDecleration(declaration, ctx, CMangler)
-                );
-
-
-                ctx.signature.set(calleSignature, llvmFunction);
-
-                return llvmFunction;
-            }
+    const signature = ctx.typeChecker.getResolvedSignature(expr);
+    if (signature) {
+        const callSignature = buildCalleFromSignature(signature, ctx, builder);
+        if (callSignature) {
+            return callSignature;
         }
     }
 
@@ -389,13 +403,13 @@ export function passVariableDeclaration(block: ts.VariableDeclaration, ctx: Cont
             ctx
         );
 
-        let allocate: llvm.AllocaInst;
+        let value: llvm.Value;
 
         const defaultValue = buildFromExpression(block.initializer, ctx, builder, nativeTypeForDefaultValue);
         if (defaultValue instanceof ObjectReference || defaultValue instanceof ArrayReference) {
-            allocate = defaultValue.getValue();
+            value = defaultValue.getValue();
         } else {
-            allocate = builder.createAlloca(
+            value = builder.createAlloca(
                 defaultValue.getValue().type,
                 undefined,
                 <string>block.name.escapedText
@@ -403,12 +417,12 @@ export function passVariableDeclaration(block: ts.VariableDeclaration, ctx: Cont
 
             builder.createStore(
                 defaultValue.getValue(),
-                allocate,
+                value,
                 false
             );
         }
 
-        ctx.scope.variables.set(<string>block.name.escapedText, new Primitive(allocate));
+        ctx.scope.variables.set(<string>block.name.escapedText, new Primitive(value));
 
         return;
     }
