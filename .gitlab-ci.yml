@@ -9,6 +9,7 @@ stages:
   script:
     - npm ci
     - npm run build
+    - npm link packages/runtime
     - npm run test
 
 node-10-llvm-6:
