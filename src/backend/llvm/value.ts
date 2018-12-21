@@ -79,14 +79,14 @@ export class ArrayReference implements Value {
 
 export class ObjectReference implements Value {
     public classReference: ClassReference;
-    public llvmValue: llvm.AllocaInst;
+    public llvmValue: llvm.CallInst;
 
-    constructor(classReference: ClassReference, llvmValue: llvm.AllocaInst) {
+    constructor(classReference: ClassReference, llvmValue: llvm.CallInst) {
         this.classReference = classReference;
         this.llvmValue = llvmValue;
     }
 
-    getValue(): llvm.AllocaInst {
+    getValue(): llvm.CallInst {
         return this.llvmValue;
     }
 

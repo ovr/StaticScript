@@ -31,6 +31,7 @@ import {ArrayLiteralExpressionCodeGenerator} from "./code-generation/array-liter
 import {ArrayLiteralExpression} from "typescript";
 import {IfStatementCodeGenerator} from "./code-generation/if-statement";
 import {CallExpressionCodeGenerator} from "./code-generation/call-expression";
+import {StringLiteral} from "typescript";
 
 export function emitCondition(
     condition: ts.Expression,
@@ -228,12 +229,22 @@ function mangleNameFromDecleration(
     ctx: Context,
     mangler: ManglerInterface
 ) {
-    if (declaration.kind === ts.SyntaxKind.MethodDeclaration) {
+    if (declaration.kind === ts.SyntaxKind.MethodDeclaration ) {
         const left = ctx.typeChecker.getTypeAtLocation(declaration.parent!) as ts.ObjectType;
 
         return mangler.getMethodName(
             <string>left.symbol.escapedName,
             <string>(<ts.Identifier>declaration.name).escapedText,
+            declaration.parameters
+        );
+    }
+
+    if (declaration.kind === ts.SyntaxKind.ConstructSignature) {
+        const left = ctx.typeChecker.getTypeAtLocation(declaration.parent!) as ts.ObjectType;
+
+        return mangler.getMethodName(
+            <string>left.symbol.escapedName,
+            <string>(<any>declaration.name),
             declaration.parameters
         );
     }
