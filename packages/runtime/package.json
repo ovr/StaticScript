@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "tsc",
-    "install": "cmake . && make"
+    "build": "tsc && cmake . && make",
+    "install": "npm run build"
   },
   "author": "Dmitry Patsura <talk@dmtry.me>",
   "license": "MIT",
