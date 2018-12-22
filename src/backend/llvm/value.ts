@@ -30,6 +30,7 @@ export function convertLLVMTypeToValueType(type: llvm.Type) {
 
 export interface Value {
     getValue(): llvm.Value;
+    getType(): ValueTypeEnum;
 
     toBoolean(ctx: Context, builder: llvm.IRBuilder, node: ts.Node): Value;
     isString(): boolean;
@@ -44,6 +45,10 @@ export class FunctionReference implements Value {
 
     getValue(): llvm.Value {
         return this.llvmValue;
+    }
+
+    getType(): ValueTypeEnum {
+        throw new Error('It is not a Primitive, it is FunctionReference (=ↀωↀ=)');
     }
 
     public toBoolean(ctx: Context, builder: llvm.IRBuilder, node: ts.Node): Value {
@@ -68,6 +73,10 @@ export class ArrayReference implements Value {
         return this.llvmValue;
     }
 
+    getType(): ValueTypeEnum {
+        throw new Error('It is not a Primitive, it is ArrayReference (=ↀωↀ=)');
+    }
+
     public toBoolean(ctx: Context, builder: llvm.IRBuilder, node: ts.Node): Value {
         throw new UnsupportedError(node, 'Cannot cast ClassReference to boolean');
     }
@@ -90,6 +99,10 @@ export class ObjectReference implements Value {
         return this.llvmValue;
     }
 
+    getType(): ValueTypeEnum {
+        throw new Error('It is not a Primitive, it is ObjectReference (=ↀωↀ=)');
+    }
+
     public toBoolean(ctx: Context, builder: llvm.IRBuilder, node: ts.Node): Value {
         throw new UnsupportedError(node, 'Cannot cast ClassReference to boolean');
     }
@@ -104,6 +117,10 @@ export class ClassReference implements Value {
 
     getValue(): llvm.Value {
         throw new Error('It is not a real value, it is ClassReference (=ↀωↀ=)');
+    }
+
+    getType(): ValueTypeEnum {
+        throw new Error('It is not a Primitive, it is ClassReference (=ↀωↀ=)');
     }
 
     constructor(structType: llvm.StructType) {
@@ -125,6 +142,10 @@ export class Primitive implements Value {
 
     getValue(): llvm.Value {
         return this.llvmValue;
+    }
+
+    getType(): ValueTypeEnum {
+        return this.type;
     }
 
     constructor(llvmValue: llvm.Value, type?: ValueTypeEnum) {

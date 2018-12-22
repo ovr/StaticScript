@@ -429,13 +429,9 @@ export function passVariableDeclaration(block: ts.VariableDeclaration, ctx: Cont
             ctx
         );
 
-        let value: llvm.Value;
-
         const defaultValue = buildFromExpression(block.initializer, ctx, builder, nativeTypeForDefaultValue);
-        if (defaultValue instanceof ObjectReference || defaultValue instanceof ArrayReference) {
-            value = defaultValue.getValue();
-        } else {
-            value = builder.createAlloca(
+        if (defaultValue instanceof Primitive) {
+            const value = builder.createAlloca(
                 defaultValue.getValue().type,
                 undefined,
                 <string>block.name.escapedText
@@ -446,9 +442,11 @@ export function passVariableDeclaration(block: ts.VariableDeclaration, ctx: Cont
                 value,
                 false
             );
-        }
 
-        ctx.scope.variables.set(<string>block.name.escapedText, new Primitive(value));
+            ctx.scope.variables.set(<string>block.name.escapedText, new Primitive(value, defaultValue.getType()));
+        } else {
+            ctx.scope.variables.set(<string>block.name.escapedText, defaultValue);
+        }
 
         return;
     }
