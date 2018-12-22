@@ -224,12 +224,12 @@ function buildFromPostfixUnaryExpression(
 }
 
 
-function mangleNameFromDecleration(
+function mangleNameFromDeclaration(
     declaration: ts.SignatureDeclaration,
     ctx: Context,
     mangler: ManglerInterface
 ) {
-    if (declaration.kind === ts.SyntaxKind.MethodDeclaration ) {
+    if (declaration.kind === ts.SyntaxKind.MethodDeclaration || declaration.kind === ts.SyntaxKind.MethodSignature) {
         const left = ctx.typeChecker.getTypeAtLocation(declaration.parent!) as ts.ObjectType;
 
         return mangler.getMethodName(
@@ -274,7 +274,7 @@ export function buildCalleFromSignature(
                 <ts.FunctionDeclaration>declaration,
                 ctx,
                 builder,
-                mangleNameFromDecleration(declaration, ctx, CPPMangler)
+                mangleNameFromDeclaration(declaration, ctx, CPPMangler)
             );
 
             ctx.signature.set(signature, llvmFunction);
@@ -287,7 +287,7 @@ export function buildCalleFromSignature(
                 <ts.FunctionDeclaration>declaration,
                 ctx,
                 builder,
-                mangleNameFromDecleration(declaration, ctx, CMangler)
+                mangleNameFromDeclaration(declaration, ctx, CMangler)
             );
 
 
