@@ -31,7 +31,7 @@ import {ArrayLiteralExpressionCodeGenerator} from "./code-generation/array-liter
 import {ArrayLiteralExpression} from "typescript";
 import {IfStatementCodeGenerator} from "./code-generation/if-statement";
 import {CallExpressionCodeGenerator} from "./code-generation/call-expression";
-import {StringLiteral} from "typescript";
+import {PropertyAccessExpressionCodeGenerator} from "./code-generation/property-access-expression";
 
 export function emitCondition(
     condition: ts.Expression,
@@ -223,6 +223,19 @@ function buildFromPostfixUnaryExpression(
     }
 }
 
+function extractNameFromObjectType(
+    type: ts.ObjectType
+): string {
+    const name = <string>type.symbol.escapedName;
+
+    if (type.isClassOrInterface() && type.typeParameters) {
+        return name + type.typeParameters.map((typeParameter: ts.TypeParameter) => {
+            return <string>typeParameter.symbol.escapedName;
+        }).join('');
+    }
+
+    return name;
+}
 
 function mangleNameFromDeclaration(
     declaration: ts.SignatureDeclaration,
@@ -233,7 +246,7 @@ function mangleNameFromDeclaration(
         const left = ctx.typeChecker.getTypeAtLocation(declaration.parent!) as ts.ObjectType;
 
         return mangler.getMethodName(
-            <string>left.symbol.escapedName,
+            extractNameFromObjectType(left),
             <string>(<ts.Identifier>declaration.name).escapedText,
             declaration.parameters
         );
@@ -243,7 +256,7 @@ function mangleNameFromDeclaration(
         const left = ctx.typeChecker.getTypeAtLocation(declaration.parent!) as ts.ObjectType;
 
         return mangler.getMethodName(
-            <string>left.symbol.escapedName,
+            extractNameFromObjectType(left),
             <string>(<any>declaration.name),
             declaration.parameters
         );
@@ -376,6 +389,8 @@ export function buildFromExpression(block: ts.Expression, ctx: Context, builder:
     switch (block.kind) {
         case ts.SyntaxKind.NewExpression:
             return new NewExpressionGenerator().generate(<any>block, ctx, builder);
+        case ts.SyntaxKind.PropertyAccessExpression:
+            return new PropertyAccessExpressionCodeGenerator().generate(<any>block, ctx, builder);
         case ts.SyntaxKind.Identifier:
             return buildFromIdentifier(<any>block, ctx, builder);
         case ts.SyntaxKind.NumericLiteral:
