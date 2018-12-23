@@ -9,7 +9,7 @@ stages:
   script:
     - npm ci
     - npm run build
-    - npm link packages/runtime
+    - npm link packages/runtime --unsafe-perm
     - npm run test
 
 node-10-llvm-6:
