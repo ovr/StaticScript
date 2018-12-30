@@ -7,22 +7,34 @@
 
 #include "library.h"
 #include <cstdint>
+#include <cstdlib>
 
 template<typename T>
 class Array {
     T* elements;
-    int32_t size;
-public:
-    Array() : elements(nullptr), size(0) {}
+    int32_t size = 0;
+    int32_t capacity;
+public: 
+    Array() : elements(nullptr), capacity(0) {}
 
-    Array(int32_t size) {
-        this->elements = new T[size];
-        this->size = size;
+    Array(int32_t capacity) {
+        this->capacity = capacity;
+        this->elements = new T[capacity];
     }
 
     void push(T value) {
-        size++;
-        elements[size] = value;
+        if (size == capacity) {
+            this->expand();
+        }
+
+        this->size++;
+        this->elements[size] = value;
+    }
+
+private:
+    void expand() {
+        this->size *= 2;
+        this->elements = std::realloc(this->elements, this->size * sizeof(T));
     }
 };
 
