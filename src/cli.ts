@@ -101,7 +101,7 @@ try {
     ]);
 } catch (e) {
     if (e instanceof UnsupportedError) {
-        ts.sys.write(ts.formatDiagnostic(e.toDiagnostic(), DiagnosticHostInstance));
+        ts.sys.write(ts.formatDiagnosticsWithColorAndContext([e.toDiagnostic()], DiagnosticHostInstance));
         ts.sys.exit(ts.ExitStatus.DiagnosticsPresent_OutputsSkipped);
     }
 
