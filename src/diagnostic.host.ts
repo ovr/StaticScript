@@ -1,17 +1,17 @@
 
-import {FormatDiagnosticsHost} from 'typescript';
+import * as ts from 'typescript';
 
-class DiagnosticHost implements FormatDiagnosticsHost {
+class DiagnosticHost implements ts.FormatDiagnosticsHost {
     public getNewLine(): string {
-        return '\n';
+        return ts.sys.newLine;
     };
 
     public getCurrentDirectory(): string {
-        return __dirname;
+        return ts.sys.getCurrentDirectory();
     }
 
     public getCanonicalFileName(fileName: string): string {
-        return fileName;
+        return ts.sys.useCaseSensitiveFileNames ? fileName : fileName.toLowerCase();
     }
 }
 
