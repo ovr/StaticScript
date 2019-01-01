@@ -8,7 +8,7 @@ import {RUNTIME_ARCHIVE_FILE, RUNTIME_DEFINITION_FILE} from "@static-script/runt
 import {initializeLLVM, generateModuleFromProgram} from './backend/llvm';
 import DiagnosticHostInstance from "./diagnostic.host";
 import UnsupportedError from "./backend/error/unsupported.error";
-import {existsSync, mkdirSync, unlinkSync} from "fs";
+import {existsSync, mkdirSync} from "fs";
 import {execFileSync} from "child_process";
 import {executeLLCSync, executeOptSync} from "./utils";
 
@@ -32,7 +32,9 @@ function parseCommandLine(): CommandLineArguments {
 
 const cliOptions = parseCommandLine();
 
-const options = {
+const options: ts.CompilerOptions = {
+    target: ts.ScriptTarget.ES2018,
+    jsx: ts.JsxEmit.None,
     lib: [
         path.join(__dirname, '..', 'staticscript.d.ts'),
         RUNTIME_DEFINITION_FILE,
@@ -47,10 +49,8 @@ const program = ts.createProgram(files, options, host);
 
 const diagnostics = ts.getPreEmitDiagnostics(program);
 if (diagnostics.length) {
-    const format = ts.formatDiagnosticsWithColorAndContext(diagnostics, DiagnosticHostInstance);
-    console.log(format);
-
-    process.exit(1);
+    ts.sys.write(ts.formatDiagnosticsWithColorAndContext(diagnostics, DiagnosticHostInstance));
+    ts.sys.exit(ts.ExitStatus.DiagnosticsPresent_OutputsSkipped);
 }
 
 initializeLLVM();
@@ -101,9 +101,8 @@ try {
     ]);
 } catch (e) {
     if (e instanceof UnsupportedError) {
-        console.log(ts.formatDiagnostic(e.toDiagnostic(), DiagnosticHostInstance));
-
-        process.exit(1);
+        ts.sys.write(ts.formatDiagnostic(e.toDiagnostic(), DiagnosticHostInstance));
+        ts.sys.exit(ts.ExitStatus.DiagnosticsPresent_OutputsSkipped);
     }
 
     throw e;
