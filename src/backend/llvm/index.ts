@@ -82,7 +82,8 @@ export function passFunctionDeclaration(parent: ts.FunctionDeclaration, ctx: Con
     for (const argument of fn.getArguments()) {
         const parameter = parent.parameters[argument.argumentNumber];
         if (parameter) {
-            ctx.scope.variables.set(<string>(<ts.Identifier>parameter.name).escapedText, new Primitive(argument));
+            argument.name = <string>(<ts.Identifier>parameter.name).escapedText;
+            ctx.scope.variables.set(argument.name, new Primitive(argument));
         } else {
             throw new UnsupportedError(
                 parameter,
