@@ -18,6 +18,8 @@ set(SOURCE_FILES
         machine.h
         array.cpp
         array.h
+        dynamic.cpp
+        dynamic.h
         v8/src/base/platform/mutex.cc
         v8/src/base/platform/time.cc
         v8/src/base/platform/semaphore.cc
@@ -55,7 +57,7 @@ if (LINUX)
         SOURCE_FILES
         ${SOURCE_FILES}
         v8/src/base/platform/platform-linux.cc
-    )
+            dynamic.cpp dynamic.h)
 endif()
 
 add_library(hlvm-runtime STATIC ${SOURCE_FILES})
