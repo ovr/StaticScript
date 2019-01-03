@@ -1,3 +1,13 @@
+equalTwoNumbers
+1.000000
+1.000000
+true
+
+equalTwoNumbers
+1.000000
+0.000000
+false
+
 compareNumberLeftLessRight
 1.000000
 100.000000

@@ -89,6 +89,18 @@ export class BinaryExpressionCodeGenerator implements NodeGenerateInterface<ts.B
                     )
                 );
             }
+            // a == b
+            case ts.SyntaxKind.EqualsEqualsToken: {
+                const left = buildFromExpression(node.left, ctx, builder);
+                const right = buildFromExpression(node.right, ctx, builder);
+
+                return new Primitive(
+                    builder.createFCmpOEQ(
+                        loadIfNeeded(left, builder),
+                        loadIfNeeded(right, builder)
+                    )
+                );
+            }
             // a ^ b
             case ts.SyntaxKind.CaretEqualsToken:
             case ts.SyntaxKind.CaretToken: {

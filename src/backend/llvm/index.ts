@@ -75,7 +75,6 @@ export function passFunctionDeclaration(parent: ts.FunctionDeclaration, ctx: Con
     );
     let fn = llvm.Function.create(fnType, llvm.LinkageTypes.ExternalLinkage, <string>parent.name.escapedText, ctx.llvmModule);
 
-
     let block = llvm.BasicBlock.create(ctx.llvmContext, 'Entry', fn);
     let irBuilder = new llvm.IRBuilder(block);
 
