@@ -1,5 +1,4 @@
-StaticScript
-============
+# <img src="./docs/assets/logo/logo-100x.png" width="28"> StaticScript
 
 > Real Static Typed Script - RSTS project.
 
