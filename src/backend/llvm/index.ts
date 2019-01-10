@@ -33,6 +33,7 @@ import {IfStatementCodeGenerator} from "./code-generation/if-statement";
 import {CallExpressionCodeGenerator} from "./code-generation/call-expression";
 import {PropertyAccessExpressionCodeGenerator} from "./code-generation/property-access-expression";
 import {TryStatementGenerator} from "./code-generation/try-statement";
+import {PostfixUnaryExpressionCodeGenerator} from "./code-generation/postfix-unary-expression";
 
 export function emitCondition(
     condition: ts.Expression,
@@ -176,52 +177,6 @@ function buildFromNumericLiteral(
             nativeType.isSigned()
         ),
     );
-}
-
-function buildFromPostfixUnaryExpression(
-    expr: ts.PostfixUnaryExpression,
-    ctx: Context,
-    builder: llvm.IRBuilder
-): Value {
-    switch (expr.operator) {
-        case ts.SyntaxKind.PlusPlusToken: {
-            const left = buildFromExpression(expr.operand, ctx, builder);
-
-            const next = builder.createFAdd(
-                loadIfNeeded(left, builder),
-                llvm.ConstantFP.get(ctx.llvmContext, 1)
-            );
-
-            builder.createStore(
-                next,
-                left.getValue(),
-                false
-            );
-
-            return left;
-        }
-        case ts.SyntaxKind.MinusMinusToken: {
-            const left = buildFromExpression(expr.operand, ctx, builder);
-
-            const next = builder.createFSub(
-                loadIfNeeded(left, builder),
-                llvm.ConstantFP.get(ctx.llvmContext, 1)
-            );
-
-            builder.createStore(
-                next,
-                left.getValue(),
-                false
-            );
-
-            return left;
-        }
-        default:
-            throw new UnsupportedError(
-                expr,
-                `Unsupported PostfixUnaryExpression.operator: "${expr.operator}"`
-            );
-    }
 }
 
 function extractNameFromObjectType(
@@ -407,7 +362,7 @@ export function buildFromExpression(block: ts.Expression, ctx: Context, builder:
         case ts.SyntaxKind.BinaryExpression:
             return new BinaryExpressionCodeGenerator().generate(<any>block, ctx, builder);
         case ts.SyntaxKind.PostfixUnaryExpression:
-            return buildFromPostfixUnaryExpression(<any>block, ctx, builder);
+            return new PostfixUnaryExpressionCodeGenerator().generate(block as ts.PostfixUnaryExpression, ctx, builder);
         case ts.SyntaxKind.CallExpression:
             return new CallExpressionCodeGenerator().generate(<any>block, ctx, builder);
         case ts.SyntaxKind.ExpressionStatement:
@@ -521,7 +476,7 @@ export function passStatement(stmt: ts.Statement, ctx: Context, builder: llvm.IR
             new BinaryExpressionCodeGenerator().generate(<any>stmt, ctx, builder);
             break;
         case ts.SyntaxKind.PostfixUnaryExpression:
-            buildFromPostfixUnaryExpression(<any>stmt, ctx, builder);
+            new PostfixUnaryExpressionCodeGenerator().generate(<any>stmt, ctx, builder);
             break;
         default:
             throw new UnsupportedError(
