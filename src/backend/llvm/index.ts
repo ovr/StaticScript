@@ -32,6 +32,7 @@ import {ArrayLiteralExpression} from "typescript";
 import {IfStatementCodeGenerator} from "./code-generation/if-statement";
 import {CallExpressionCodeGenerator} from "./code-generation/call-expression";
 import {PropertyAccessExpressionCodeGenerator} from "./code-generation/property-access-expression";
+import {TryStatementGenerator} from "./code-generation/try-statement";
 
 export function emitCondition(
     condition: ts.Expression,
@@ -509,6 +510,9 @@ export function passStatement(stmt: ts.Statement, ctx: Context, builder: llvm.IR
             break;
         case ts.SyntaxKind.DoStatement:
             new DoStatementGenerator().generate(stmt as ts.DoStatement, ctx, builder);
+            break;
+        case ts.SyntaxKind.TryStatement:
+            new TryStatementGenerator().generate(stmt as ts.TryStatement, ctx, builder);
             break;
         case ts.SyntaxKind.WhileStatement:
             new WhileStatementGenerator().generate(stmt as ts.WhileStatement, ctx, builder);
