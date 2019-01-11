@@ -70,4 +70,32 @@ export class Context {
             'array<float64>'
         ));
     }
+
+    getIntrinsic(functionName: string): llvm.Function {
+        const moduleFn = this.llvmModule.getFunction(functionName);
+        if (moduleFn) {
+            return moduleFn;
+        }
+
+        switch (functionName) {
+            case 'llvm.pow.f64':
+                const intrinsicType = llvm.FunctionType.get(
+                    llvm.Type.getDoubleTy(this.llvmContext),
+                    [
+                        llvm.Type.getDoubleTy(this.llvmContext),
+                        llvm.Type.getDoubleTy(this.llvmContext),
+                    ],
+                    false
+                );
+
+                return llvm.Function.create(
+                    intrinsicType,
+                    llvm.LinkageTypes.ExternalLinkage,
+                    functionName,
+                    this.llvmModule
+                );
+            default:
+                throw new Error(`Unknown intrinsic: "${functionName}"`);
+        }
+    }
 }

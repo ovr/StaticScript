@@ -31,6 +31,7 @@ export class BinaryExpressionCodeGenerator implements NodeGenerateInterface<ts.B
             case ts.SyntaxKind.LessThanLessThanEqualsToken:
             case ts.SyntaxKind.GreaterThanGreaterThanEqualsToken:
             case ts.SyntaxKind.CaretEqualsToken:
+            case ts.SyntaxKind.AsteriskAsteriskEqualsToken:
             case ts.SyntaxKind.AsteriskEqualsToken:
             case ts.SyntaxKind.PlusEqualsToken:
             case ts.SyntaxKind.MinusEqualsToken: {
@@ -98,6 +99,22 @@ export class BinaryExpressionCodeGenerator implements NodeGenerateInterface<ts.B
                     builder.createFCmpOEQ(
                         loadIfNeeded(left, builder),
                         loadIfNeeded(right, builder)
+                    )
+                );
+            }
+            // a ** b
+            case ts.SyntaxKind.AsteriskAsteriskEqualsToken:
+            case ts.SyntaxKind.AsteriskAsteriskToken: {
+                const left = buildFromExpression(node.left, ctx, builder);
+                const right = buildFromExpression(node.right, ctx, builder);
+
+                return new Primitive(
+                    builder.createCall(
+                        ctx.getIntrinsic('llvm.pow.f64'),
+                        [
+                            loadIfNeeded(left, builder),
+                            loadIfNeeded(right, builder)
+                        ]
                     )
                 );
             }
