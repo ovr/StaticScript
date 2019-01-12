@@ -154,6 +154,10 @@ export class Primitive implements Value {
     }
 
     public toBoolean(ctx: Context, builder: llvm.IRBuilder, node: ts.Node): Value {
+        if (this.type == ValueTypeEnum.BOOLEAN) {
+            return this;
+        }
+
         const value = loadIfNeeded(this, builder);
 
         if (value.type.isDoubleTy()) {
