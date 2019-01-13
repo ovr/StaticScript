@@ -8,37 +8,39 @@
 #include <cstdint>
 
 enum DynamicType: int8_t {
-    BOOLEAN_TYPE = 1,
-    DOUBLE_TYPE = 2,
+    BOOLEAN = 1,
+    NUMBER = 2,
+    INT64 = 3,
+    UNDEFINED = 3,
 };
 
 class Dynamic {
 public:
     Dynamic(double value) {
-        this->d = value;
-        this->type = DynamicType::DOUBLE_TYPE;
+        this->number = value;
+        this->type = DynamicType::NUMBER;
     }
 
     Dynamic(bool value) {
-        this->b = value;
-        this->type = DynamicType::BOOLEAN_TYPE;
+        this->boolean = value;
+        this->type = DynamicType::BOOLEAN;
     }
 
-    void setValue(double value) {
-        this->d = value;
-        this->type = DynamicType::DOUBLE_TYPE;
-    };
+    Dynamic(int64_t value) {
+        this->int64 = value;
+        this->type = DynamicType::INT64;
+    }
 
-    void setValue(bool value) {
-        this->b = value;
-        this->type = DynamicType::BOOLEAN_TYPE;
-    };
+    Dynamic() {
+        this->type = DynamicType::UNDEFINED;
+    }
 private:
     DynamicType type;
 
     union {
-        double d;
-        bool b;
+        double number;
+        bool boolean;
+        int64_t int64;
     };
 };
 
