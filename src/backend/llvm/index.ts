@@ -34,6 +34,7 @@ import {CallExpressionCodeGenerator} from "./code-generation/call-expression";
 import {PropertyAccessExpressionCodeGenerator} from "./code-generation/property-access-expression";
 import {TryStatementGenerator} from "./code-generation/try-statement";
 import {PostfixUnaryExpressionCodeGenerator} from "./code-generation/postfix-unary-expression";
+import {FunctionDeclarationCodeGenerator} from "./code-generation/function-declaration";
 
 export function emitCondition(
     condition: ts.Expression,
@@ -46,81 +47,6 @@ export function emitCondition(
 
     const conditionBoolValue = left.toBoolean(ctx, builder, condition);
     builder.createCondBr(conditionBoolValue.getValue(), positiveBlock, negativeBlock);
-}
-
-export function passFunctionDeclaration(parent: ts.FunctionDeclaration, ctx: Context, builder: llvm.IRBuilder) {
-    if (!parent.name || !parent.name.escapedText) {
-        throw Error('Function must be declared with name');
-    }
-
-    if (!parent.type) {
-        throw Error('Function must be declared with return type');
-    }
-
-    let returnType = NativeTypeResolver.getType(ctx.typeChecker.getTypeFromTypeNode(parent.type), ctx).getType();
-    let fnType = llvm.FunctionType.get(
-        returnType,
-        parent.parameters.map((parameter) => {
-            if (parameter.type) {
-                const nativeType = NativeTypeResolver.getType(ctx.typeChecker.getTypeFromTypeNode(parameter.type), ctx);
-                if (nativeType) {
-                    return nativeType.getType();
-                }
-            }
-
-            throw new UnsupportedError(
-                parameter,
-                `Unsupported parameter`
-            );
-        }),
-        false
-    );
-    let fn = llvm.Function.create(fnType, llvm.LinkageTypes.ExternalLinkage, <string>parent.name.escapedText, ctx.llvmModule);
-
-    let block = llvm.BasicBlock.create(ctx.llvmContext, 'Entry', fn);
-    let irBuilder = new llvm.IRBuilder(block);
-
-    for (const argument of fn.getArguments()) {
-        const parameter = parent.parameters[argument.argumentNumber];
-        if (parameter) {
-            argument.name = <string>(<ts.Identifier>parameter.name).escapedText;
-            ctx.scope.variables.set(argument.name, new Primitive(argument));
-        } else {
-            throw new UnsupportedError(
-                parameter,
-                `Unsupported parameter`
-            );
-        }
-    }
-
-
-    // Store to return back
-    const enclosureFnStore = ctx.scope.enclosureFunction;
-
-    ctx.scope.enclosureFunction = {
-        llvmFunction: fn,
-        declaration: parent
-    };
-
-    if (parent.body) {
-        for (const stmt of parent.body.statements) {
-            passStatement(stmt, ctx, irBuilder);
-        }
-    }
-
-    // store back
-    ctx.scope.enclosureFunction = enclosureFnStore;
-
-    if (returnType.isVoidTy()) {
-        if (!block.getTerminator()) {
-            irBuilder.createRetVoid();
-        }
-
-        const nextBlock = irBuilder.getInsertBlock();
-        if (!nextBlock.getTerminator()) {
-            irBuilder.createRetVoid();
-        }
-    }
 }
 
 export function buildFromStringValue(node: ts.StringLiteral, ctx: Context, builder: llvm.IRBuilder): Value {
@@ -457,7 +383,7 @@ export function passStatement(stmt: ts.Statement, ctx: Context, builder: llvm.IR
             buildFromExpression(<any>stmt, ctx, builder);
             break;
         case ts.SyntaxKind.FunctionDeclaration:
-            passFunctionDeclaration(stmt as ts.FunctionDeclaration, ctx, builder);
+            new FunctionDeclarationCodeGenerator().generate(stmt as ts.FunctionDeclaration, ctx, builder);
             break;
         case ts.SyntaxKind.ReturnStatement:
             new ReturnStatementCodeGenerator().generate(stmt as ts.ReturnStatement, ctx, builder);
