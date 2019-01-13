@@ -34,8 +34,12 @@ export class ArrayLiteralExpressionCodeGenerator implements NodeGenerateInterfac
 
     static buildTypedArrayStructLLVMType(elementType: llvm.Type, ctx: Context, name: string): llvm.StructType {
         const structType = llvm.StructType.create(ctx.llvmContext, name);
+
         structType.setBody([
             elementType,
+            // size
+            llvm.Type.getInt32Ty(ctx.llvmContext),
+            // capacity
             llvm.Type.getInt32Ty(ctx.llvmContext),
         ]);
 

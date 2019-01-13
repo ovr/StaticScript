@@ -11,9 +11,6 @@
 
 template<typename T>
 class Array {
-    T* elements;
-    int32_t size = 0;
-    int32_t capacity;
 public: 
     Array() : elements(nullptr), capacity(0) {}
 
@@ -32,6 +29,10 @@ public:
     }
 
 private:
+    T* elements;
+    int32_t size = 0;
+    int32_t capacity;
+
     void expand() {
         this->size *= 2;
         this->elements = std::realloc(this->elements, this->size * sizeof(T));
