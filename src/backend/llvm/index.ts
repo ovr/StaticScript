@@ -292,8 +292,22 @@ function declareFunctionFromDefinition(
     builder: llvm.IRBuilder,
     name: string
 ): llvm.Function {
+    let returnType = llvm.Type.getVoidTy(ctx.llvmContext);
+
+    if (stmt.type) {
+        const nativeReturnType = NativeTypeResolver.getType(ctx.typeChecker.getTypeFromTypeNode(stmt.type), ctx);
+        if (nativeReturnType) {
+            returnType = nativeReturnType.getType();
+        } else {
+            throw new UnsupportedError(
+                stmt,
+                `Unsupported return type`
+            );
+        }
+    }
+
     let fnType = llvm.FunctionType.get(
-        stmt.type ? NativeTypeResolver.getType(ctx.typeChecker.getTypeFromTypeNode(stmt.type), ctx).getType() : llvm.Type.getVoidTy(ctx.llvmContext),
+        returnType,
         stmt.parameters.map((parameter) => {
             if (parameter.type) {
                 const nativeType = NativeTypeResolver.getType(ctx.typeChecker.getTypeFromTypeNode(parameter.type), ctx);
