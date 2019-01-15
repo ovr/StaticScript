@@ -28,7 +28,9 @@ export class IfStatementCodeGenerator implements NodeGenerateInterface<ts.IfStat
             builder.setInsertionPoint(negativeBlock);
             passNode(node.elseStatement, ctx, builder);
 
-            builder.createBr(next);
+            if (!negativeBlock.getTerminator()) {
+                builder.createBr(next);
+            }
         } else {
             emitCondition(
                 node.expression,
