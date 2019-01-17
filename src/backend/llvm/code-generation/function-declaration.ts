@@ -69,19 +69,24 @@ export class FunctionDeclarationCodeGenerator implements NodeGenerateInterface<t
             }
         }
 
-        // store back
-        ctx.scope.enclosureFunction = enclosureFnStore;
-
         if (returnType.isVoidTy()) {
             if (!block.getTerminator()) {
                 irBuilder.createRetVoid();
             }
 
-            const nextBlock = irBuilder.getInsertBlock();
-            if (!nextBlock.getTerminator()) {
+            const next = irBuilder.getInsertBlock();
+            if (!next.getTerminator()) {
                 irBuilder.createRetVoid();
             }
+        } else {
+            const next = irBuilder.getInsertBlock();
+            if (next.empty) {
+                next.eraseFromParent();
+            }
         }
+
+        // store back
+        ctx.scope.enclosureFunction = enclosureFnStore;
 
         return new FunctionReference(fn);
     }

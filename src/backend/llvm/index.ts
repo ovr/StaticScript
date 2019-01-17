@@ -464,7 +464,7 @@ export function generateModuleFromProgram(program: ts.Program): llvm.Module {
     const mainFnType = llvm.FunctionType.get(llvm.Type.getInt64Ty(ctx.llvmContext), false);
     const mainFn = llvm.Function.create(mainFnType, llvm.LinkageTypes.ExternalLinkage, "main", ctx.llvmModule);
 
-    const block = llvm.BasicBlock.create(ctx.llvmContext, "Entry", mainFn);
+    const block = llvm.BasicBlock.create(ctx.llvmContext, "entry", mainFn);
     const builder = new llvm.IRBuilder(block);
 
     ctx.scope.enclosureFunction = {
