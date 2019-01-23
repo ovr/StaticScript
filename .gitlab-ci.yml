@@ -1,6 +1,7 @@
 
 stages:
   - tests
+  - image
 
 .run_tests_template: &run_tests
   stage: tests
@@ -37,3 +38,16 @@ node-11-llvm-8:
   allow_failure: true
   image: registry.gitlab.com/ovr/staticscript:node-11-llvm-8
   <<: *run_tests
+
+next:
+  stage: image
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
+  script:
+    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
+    - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/docker/next/Dockerfile --destination $CI_REGISTRY_IMAGE:next
+  only:
+    - master
+  tags:
+    - docker
