@@ -11,7 +11,6 @@ set(SOURCE_FILES
         helpers.cpp
         helpers.h
         helpers.h
-        jsvalue.h
         math.cpp
         math.h
         machine.cpp
