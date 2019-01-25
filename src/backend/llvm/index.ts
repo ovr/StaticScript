@@ -35,6 +35,7 @@ import {PropertyAccessExpressionCodeGenerator} from "./code-generation/property-
 import {TryStatementGenerator} from "./code-generation/try-statement";
 import {PostfixUnaryExpressionCodeGenerator} from "./code-generation/postfix-unary-expression";
 import {FunctionDeclarationCodeGenerator} from "./code-generation/function-declaration";
+import {TypeOfExpressionCodeGenerator} from "./code-generation/typeof-expression";
 
 export function emitCondition(
     condition: ts.Expression,
@@ -49,13 +50,15 @@ export function emitCondition(
     builder.createCondBr(conditionBoolValue.getValue(), positiveBlock, negativeBlock);
 }
 
-export function buildFromStringValue(node: ts.StringLiteral, ctx: Context, builder: llvm.IRBuilder): Value {
+export function buildFromString(value: string, ctx: Context, builder: llvm.IRBuilder): Value {
     return new Primitive(
-        builder.createGlobalStringPtr(
-            node.text,
-        ),
+        builder.createGlobalStringPtr(value),
         ValueTypeEnum.STRING
     );
+}
+
+export function buildFromStringValue(node: ts.StringLiteral, ctx: Context, builder: llvm.IRBuilder): Value {
+    return buildFromString(node.text, ctx, builder);
 }
 
 export function buildFromTrueKeyword(node: ts.BooleanLiteral, ctx: Context, builder: llvm.IRBuilder): Value {
@@ -307,9 +310,10 @@ export function buildFromExpression(block: ts.Expression, ctx: Context, builder:
             return new CallExpressionCodeGenerator().generate(<any>block, ctx, builder);
         case ts.SyntaxKind.ExpressionStatement:
             return <any>buildFromExpression((<any>block).expression, ctx, builder);
-        case ts.SyntaxKind.ParenthesizedExpression: {
+        case ts.SyntaxKind.TypeOfExpression:
+            return new TypeOfExpressionCodeGenerator().generate(block as ts.TypeOfExpression, ctx, builder);
+        case ts.SyntaxKind.ParenthesizedExpression:
             return buildFromExpression((<ts.ParenthesizedExpression>block).expression, ctx, builder);
-        }
         default:
             throw new UnsupportedError(
                 block,
