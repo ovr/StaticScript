@@ -36,6 +36,7 @@ import {TryStatementGenerator} from "./code-generation/try-statement";
 import {PostfixUnaryExpressionCodeGenerator} from "./code-generation/postfix-unary-expression";
 import {FunctionDeclarationCodeGenerator} from "./code-generation/function-declaration";
 import {TypeOfExpressionCodeGenerator} from "./code-generation/typeof-expression";
+import {PrefixUnaryExpressionCodeGenerator} from "./code-generation/prefix-unary-expression";
 
 export function emitCondition(
     condition: ts.Expression,
@@ -304,6 +305,8 @@ export function buildFromExpression(block: ts.Expression, ctx: Context, builder:
             return buildFromFalseKeyword(<any>block, ctx, builder);
         case ts.SyntaxKind.BinaryExpression:
             return new BinaryExpressionCodeGenerator().generate(<any>block, ctx, builder);
+        case ts.SyntaxKind.PrefixUnaryExpression:
+            return new PrefixUnaryExpressionCodeGenerator().generate(block as ts.PrefixUnaryExpression, ctx, builder);
         case ts.SyntaxKind.PostfixUnaryExpression:
             return new PostfixUnaryExpressionCodeGenerator().generate(block as ts.PostfixUnaryExpression, ctx, builder);
         case ts.SyntaxKind.CallExpression:
