@@ -1,5 +1,6 @@
 src
-runtime-1
+docs
+docker
 runtime-test
 packages
 node_modules
