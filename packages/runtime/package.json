@@ -1,11 +1,11 @@
 {
   "name": "@static-script/runtime",
-  "version": "0.11.0",
+  "version": "0.12.1",
   "description": "",
   "main": "index.js",
   "scripts": {
     "build": "tsc && cmake . && make",
-    "install": "npm run build"
+    "install": "cmake . && make"
   },
   "author": "Dmitry Patsura <talk@dmtry.me>",
   "license": "MIT",
