@@ -11,7 +11,7 @@ stages:
     - npm ci
     - npm run build
     - cd packages/runtime/ && npm run build  && cd -
-    - npm install packages/runtime --unsafe-perm
+    - npm link packages/runtime --unsafe-perm
     - npm run test
 
 node-10-llvm-6:
