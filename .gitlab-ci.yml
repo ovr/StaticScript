@@ -10,6 +10,7 @@ stages:
   script:
     - npm ci
     - npm run build
+    - cd packages/runtime/ && npm run build  && cd -
     - npm install packages/runtime --unsafe-perm
     - npm run test
 
