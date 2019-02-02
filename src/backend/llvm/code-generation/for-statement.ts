@@ -45,25 +45,32 @@ export class ForStatementGenerator implements NodeGenerateInterface<ts.ForStatem
             builder.setInsertionPoint(bodyBlock);
         }
 
-        ctx.scope.breakBlock = next;
-        ctx.scope.continueBlock = startBlock;
-
-        builder.setInsertionPoint(bodyBlock);
-        passStatement(node.statement, ctx, builder);
+        /**
+         * Continue block can be incrementer block: for (i = 0; i < 100; i++)
+         * or next block: for (i = 0; i < 100; )
+         */
+        let continueBlock: llvm.BasicBlock = startBlock;
 
         if (node.incrementor) {
             const incrementer = llvm.BasicBlock.create(ctx.llvmContext, "for.inc");
             ctx.scope.enclosureFunction.llvmFunction.addBasicBlock(incrementer);
 
-            // jump from bodyBlock to incrementer
-            builder.createBr(incrementer);
             builder.setInsertionPoint(incrementer);
-
             passStatement(<any>node.incrementor, ctx, builder);
+
+            builder.createBr(startBlock);
+
+            continueBlock = incrementer;
         }
 
+        ctx.scope.breakBlock = next;
+        ctx.scope.continueBlock = continueBlock;
+
+        builder.setInsertionPoint(bodyBlock);
+        passStatement(node.statement, ctx, builder);
+
         // next iteration of cycle
-        builder.createBr(startBlock);
+        builder.createBr(continueBlock);
 
         ctx.scope.breakBlock = null;
         ctx.scope.continueBlock = null;
