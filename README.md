@@ -12,12 +12,14 @@ I prepared two talks on PiterJS meetup with explanation about how it was impleme
 
 ***Part 1***
 
-(Slides)[https://speakerdeck.com/ovr/staticscript-typescript-compiler-on-top-of-typescript-as-frontend-and-llvm-as-backend-number-1]
+[Slides](https://speakerdeck.com/ovr/staticscript-typescript-compiler-on-top-of-typescript-as-frontend-and-llvm-as-backend-number-1)
+
 (Video)(will be in near feature)
 
 ***Part 2***
 
-(Slides)[https://speakerdeck.com/ovr/staticscript-typescript-compiler-on-top-of-typescript-as-frontend-and-llvm-as-backend-number-2]
+[Slides](https://speakerdeck.com/ovr/staticscript-typescript-compiler-on-top-of-typescript-as-frontend-and-llvm-as-backend-number-2)
+
 (Video)(Sorry, but due technical problems on meetup It was not recorded)
 
 # Installing
