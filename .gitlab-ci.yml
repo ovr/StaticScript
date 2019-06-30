@@ -31,13 +31,23 @@ node-11-llvm-6:
   <<: *run_tests
 
 node-11-llvm-7:
-  allow_failure: true
   image: registry.gitlab.com/ovr/staticscript:node-11-llvm-7
   <<: *run_tests
 
 node-11-llvm-8:
-  allow_failure: true
   image: registry.gitlab.com/ovr/staticscript:node-11-llvm-8
+  <<: *run_tests
+
+node-12-llvm-6:
+  image: registry.gitlab.com/ovr/staticscript:node-12-llvm-6
+  <<: *run_tests
+
+node-12-llvm-7:
+  image: registry.gitlab.com/ovr/staticscript:node-12-llvm-7
+  <<: *run_tests
+
+node-12-llvm-8:
+  image: registry.gitlab.com/ovr/staticscript:node-12-llvm-8
   <<: *run_tests
 
 next:
