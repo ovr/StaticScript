@@ -22,6 +22,7 @@ async function main() {
 
             const compileLog = execFileSync(path.join(__dirname, '..', 'bin', 'ssc'), [
                 '--printIR',
+                '--debug',
                 testFile
             ]);
 

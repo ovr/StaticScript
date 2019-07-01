@@ -14,14 +14,16 @@ import {executeLLCSync, executeOptSync} from "./utils";
 
 interface CommandLineArguments {
     args: string[];
-    printIR?: boolean;
-    outputFile?: string;
-    optimizationLevel?: string;
+    debug: boolean;
+    printIR: boolean;
+    outputFile: string;
+    optimizationLevel: string;
 }
 
 function parseCommandLine(): CommandLineArguments {
     cli
         .version('next')
+        .option('--debug', 'Show all debug information', false)
         .option('-ir, --printIR', 'Print IR', false)
         .option('-f, --outputFile <n>', 'Name of the executable file', 'main')
         .option('-o, --optimizationLevel <n>', 'Optimization level', 3)
@@ -74,31 +76,61 @@ try {
 
     const optimizationLevel = `-O${cliOptions.optimizationLevel}`;
 
-    executeOptSync([
-        optimizationLevel,
-        path.join(outputPath, 'main.bc'),
-        '-o', path.join(outputPath, 'main.bc')
-    ]);
+    if (cliOptions.debug) {
+        ts.sys.write('Executing llvm-opt');
+    }
 
-    executeLLCSync([
-        optimizationLevel,
-        // Fully relocatable, position independent code
-        '-relocation-model=pic',
-        '-filetype=obj', path.join(outputPath, 'main.bc'),
-        '-o', path.join(outputPath, 'main.o'),
-    ]);
+    {
+        const output = executeOptSync([
+            optimizationLevel,
+            path.join(outputPath, 'main.bc'),
+            '-o', path.join(outputPath, 'main.bc')
+        ]);
 
-    execFileSync("c++", [
-        optimizationLevel,
-        path.join(outputPath, 'main.o'),
-        RUNTIME_ARCHIVE_FILE,
-        '-o', path.join(outputPath, cliOptions.outputFile),
-        '-lstdc++',
-        '-std=c++11',
-        '-Werror',
-        '-pthread',
-        '-v',
-    ]);
+        if (cliOptions.debug) {
+            ts.sys.write(output.toString());
+        }
+    }
+
+    if (cliOptions.debug) {
+        ts.sys.write('Executing llvm-llc');
+    }
+
+    {
+        const output = executeLLCSync([
+            optimizationLevel,
+            // Fully relocatable, position independent code
+            '-relocation-model=pic',
+            '-filetype=obj', path.join(outputPath, 'main.bc'),
+            '-o', path.join(outputPath, 'main.o'),
+        ]);
+
+        if (cliOptions.debug) {
+            ts.sys.write(output.toString());
+        }
+    }
+
+    if (cliOptions.debug) {
+        ts.sys.write('Executing c++ compiler');
+    }
+
+    {
+        const output = execFileSync("c++", [
+            optimizationLevel,
+            path.join(outputPath, 'main.o'),
+            RUNTIME_ARCHIVE_FILE,
+            '-o', path.join(outputPath, cliOptions.outputFile),
+            '-lstdc++',
+            '-std=c++11',
+            '-Werror',
+            '-pthread',
+            '-v',
+        ]);
+
+        if (cliOptions.debug) {
+            ts.sys.write(output.toString());
+        }
+    }
 } catch (e) {
     if (e instanceof UnsupportedError) {
         ts.sys.write(ts.formatDiagnosticsWithColorAndContext([e.toDiagnostic()], DiagnosticHostInstance));

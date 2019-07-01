@@ -12,15 +12,15 @@ function getLLVMBinDirectory(): string {
     return llvmBinDir;
 }
 
-export function executeLLCSync(options: Array<any>) {
-    child_process.execFileSync(
+export function executeLLCSync(options: Array<any>): Buffer|string {
+    return child_process.execFileSync(
         path.join(getLLVMBinDirectory(), 'llc'),
         options
     )
 }
 
-export function executeOptSync(options: Array<any>) {
-    child_process.execFileSync(
+export function executeOptSync(options: Array<any>): Buffer|string {
+    return child_process.execFileSync(
         path.join(getLLVMBinDirectory(), 'opt'),
         options
     )
