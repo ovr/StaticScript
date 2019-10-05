@@ -1,6 +1,6 @@
 {
   "name": "static-script",
-  "version": "0.8.1",
+  "version": "0.7.0",
   "description": "",
   "main": "index.js",
   "typings": "staticscript.d.ts",
@@ -25,8 +25,8 @@
     "commander": "^2.19.0"
   },
   "dependencies": {
-    "@static-script/runtime": "0.12.1",
-    "llvm-node": "github:MichaReiser/llvm-node#2ff0e323c13e90624f81c690b46c18a17f646bf3",
-    "typescript": "3.2.2"
+    "@static-script/runtime": "^0.11.0",
+    "llvm-node": "github:MichaReiser/llvm-node#bc90d33a97c750447697a1330f3fe6517942ea16",
+    "typescript": "3.6.3"
   }
 }
