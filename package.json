@@ -21,7 +21,7 @@
     "ssc": "./bin/ssc"
   },
   "devDependencies": {
-    "@types/node": "10.12.2",
+    "@types/node": "12.7.11",
     "commander": "^2.19.0"
   },
   "dependencies": {
