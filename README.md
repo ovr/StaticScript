@@ -14,7 +14,7 @@ I prepared two talks on PiterJS meetup with explanation about how it was impleme
 
 [Slides](https://speakerdeck.com/ovr/staticscript-typescript-compiler-on-top-of-typescript-as-frontend-and-llvm-as-backend-number-1)
 
-(Video)(will be in near feature)
+[Video](https://youtu.be/KjJn-J8d1Xc)
 
 ***Part 2***
 
