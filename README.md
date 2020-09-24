@@ -8,6 +8,10 @@ StaticScript is a language on top of TypeScript as frontend and LLVM as backend 
 
 ### How it was implemented
 
+My talk about How it's working on hight level and about V8/JIT and etc
+
+[Video](https://www.youtube.com/watch?v=gS9a_NBHdw0)
+
 I prepared two talks on PiterJS meetup with explanation about how it was implemented
 
 ***Part 1***
