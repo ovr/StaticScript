@@ -1,5 +1,7 @@
 [workspace]
 resolver = "2"
 members = [
-    "src/frontend"
+    "src/frontend",
+    "src/cli"
 ]
+default-run = "src/cli"

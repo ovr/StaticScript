@@ -132,7 +132,7 @@ impl Project {
         Ok(files)
     }
 
-    pub fn scan(&mut self) -> Result<(), Error> {
+    pub fn scan(&mut self, base_path: &Path) -> Result<(), Error> {
         let tsconfig_path = Path::new("./tsconfig.json");
 
         if tsconfig_path.exists() {
