@@ -1,4 +1,0 @@
-
-{
-    puts("Hello World!");
-}
