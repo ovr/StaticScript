@@ -1,5 +1,5 @@
 use err_derive::Error;
-use structopt::clap::AppSettings;
+use structopt::clap::{crate_version, App, AppSettings};
 use structopt::StructOpt;
 
 mod check;
@@ -24,9 +24,14 @@ pub enum CLIError {
 }
 
 fn main() {
+    App::new("staticscript")
+        .bin_name("ssc")
+        .version(crate_version!());
+
     let opt = Opt::from_args();
     let result = match opt {
         Opt::Check(opts) => run_check_command(opts),
         Opt::Compile(opts) => run_compile_command(opts),
     };
+    result.unwrap();
 }

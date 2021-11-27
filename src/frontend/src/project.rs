@@ -22,8 +22,8 @@ impl ProjectState {
 }
 
 pub struct Project {
-    state: ProjectState,
-    subproject: Vec<ProjectState>,
+    pub state: ProjectState,
+    pub subproject: Vec<ProjectState>,
 }
 
 impl Project {

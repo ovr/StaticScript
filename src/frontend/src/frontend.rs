@@ -1,5 +1,6 @@
 use crate::binder::Binder;
 use crate::inference::{self, Inference};
+use crate::project::Project;
 use swc_common::sync::Lrc;
 use swc_common::{
     errors::{ColorConfig, Handler},
@@ -16,7 +17,7 @@ impl Frontend {
         Self {}
     }
 
-    fn compile(&self, filename: FileName, src: String) -> Module {
+    fn parse(&self, filename: FileName, src: String) -> Module {
         let cm: Lrc<SourceMap> = Default::default();
         let handler = Handler::with_tty_emitter(ColorConfig::Auto, true, false, Some(cm.clone()));
 
@@ -53,7 +54,7 @@ impl Frontend {
     }
 
     pub fn compile_inline(&self, src: String) {
-        let module = self.compile(FileName::Custom("test.js".into()), src);
+        let module = self.parse(FileName::Custom("test.js".into()), src);
 
         let binder = Binder::new();
         let mut binded_module = binder.bind(module);
@@ -62,5 +63,5 @@ impl Frontend {
         binder.inference(&mut binded_module).unwrap();
     }
 
-    pub fn compile_dir() {}
+    pub fn compile(&self, project: Project) {}
 }

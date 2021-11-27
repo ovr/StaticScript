@@ -1,6 +1,5 @@
 use std::path::Path;
 
-use structopt::clap::AppSettings;
 use structopt::StructOpt;
 
 use crate::CLIError;

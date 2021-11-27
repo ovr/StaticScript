@@ -1,4 +1,3 @@
-use structopt::clap::AppSettings;
 use structopt::StructOpt;
 
 use crate::CLIError;
