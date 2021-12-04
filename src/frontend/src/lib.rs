@@ -2,12 +2,15 @@
 extern crate swc_common;
 extern crate swc_ecma_parser;
 
-use err_derive::Error;
+use backend_llvm::BackendError;
+use thiserror::Error;
 
-#[derive(Debug, Error)]
+#[derive(Error, Debug)]
 pub enum Error {
-    #[error(display = "User: {:?}", _0)]
+    #[error("User: {0}")]
     User(String),
+    #[error("Backend: {0}")]
+    Backend(#[from] BackendError),
 }
 
 impl Error {}

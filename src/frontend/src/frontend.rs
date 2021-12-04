@@ -1,12 +1,14 @@
-use crate::binder::Binder;
-use crate::inference::{self, Inference};
+use crate::binder::{Binder};
+
 use crate::project::Project;
+use crate::Error;
+use backend_llvm::LLVMBackend;
 use swc_common::sync::Lrc;
 use swc_common::{
     errors::{ColorConfig, Handler},
-    FileName, FilePathMapping, SourceMap,
+    FileName, SourceMap,
 };
-use swc_ecma_ast::{Decl, FnDecl, Module, ModuleDecl, Stmt};
+use swc_ecma_ast::{Module};
 use swc_ecma_parser::TsConfig;
 use swc_ecma_parser::{lexer::Lexer, Parser, StringInput, Syntax};
 
@@ -46,22 +48,27 @@ impl Frontend {
 
         parser
             .parse_module()
-            .map_err(|mut e| {
+            .map_err(|e| {
                 // Unrecoverable fatal error occurred
                 e.into_diagnostic(&handler).emit()
             })
             .expect("failed to parser module")
     }
 
-    pub fn compile_inline(&self, src: String) {
+    pub fn compile_inline(&self, src: String) -> Result<(), Error> {
         let module = self.parse(FileName::Custom("test.js".into()), src);
 
         let binder = Binder::new();
-        let mut binded_module = binder.bind(module);
+        let binded_module = binder.bind(module);
 
-        let binder = inference::Inference::new();
-        binder.inference(&mut binded_module).unwrap();
+        let llvm_backend = LLVMBackend::new();
+
+        for fun in binded_module.functions {
+            llvm_backend.compile(fun.node)?;
+        }
+
+        Ok(())
     }
 
-    pub fn compile(&self, project: Project) {}
+    pub fn compile(&self, _project: Project) {}
 }

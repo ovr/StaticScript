@@ -1,4 +1,4 @@
-use std::{collections::HashMap, env::args, result::Result};
+use std::{collections::HashMap, result::Result};
 
 use swc_ecma_ast::FnDecl;
 
@@ -50,7 +50,7 @@ impl Inference {
             for stmt in &block.stmts {
                 match stmt {
                     swc_ecma_ast::Stmt::Return(rs) => {
-                        if let Some(arg) = &rs.arg {
+                        if let Some(_arg) = &rs.arg {
                         } else {
                             return Ok(Some(TypeKind::Undefined));
                         }

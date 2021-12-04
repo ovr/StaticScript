@@ -4,10 +4,10 @@ use std::{
     path::Path,
 };
 
-use swc_common::FileLoader;
+
 
 use crate::{
-    tsconfig::{self, TSConfiguration},
+    tsconfig::{TSConfiguration},
     Error,
 };
 
@@ -66,7 +66,7 @@ impl Project {
                 let tsconfig = serde_jsonrc::from_str::<TSConfiguration>(&buff).unwrap();
                 println!("Subproject {:?}", tsconfig);
 
-                if let Some(extends) = &tsconfig.extends {
+                if let Some(_extends) = &tsconfig.extends {
                     // let tsconfig_extends_path = tsconfig_path.parent().unwrap().join(extends);
                     // if !tsconfig_extends_path.exists() {
                     //     return Err(Error::User(format!(
@@ -132,12 +132,12 @@ impl Project {
         Ok(files)
     }
 
-    pub fn scan(&mut self, base_path: &Path) -> Result<(), Error> {
+    pub fn scan(&mut self, _base_path: &Path) -> Result<(), Error> {
         let tsconfig_path = Path::new("./tsconfig.json");
 
         if tsconfig_path.exists() {
             if tsconfig_path.is_file() {
-                let tsconfig = self.load_project(&tsconfig_path)?;
+                let _tsconfig = self.load_project(&tsconfig_path)?;
             }
         };
 

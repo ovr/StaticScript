@@ -52,7 +52,7 @@ impl Binder {
     pub fn bind(mut self, module: Module) -> BindedModule {
         for module_item in module.body {
             match module_item {
-                swc_ecma_ast::ModuleItem::ModuleDecl(mdec) => {}
+                swc_ecma_ast::ModuleItem::ModuleDecl(_mdec) => {}
                 swc_ecma_ast::ModuleItem::Stmt(stmt) => self.bind_statement(stmt),
             }
         }

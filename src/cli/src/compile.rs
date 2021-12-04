@@ -18,7 +18,7 @@ pub fn run_compile_command(options: CompileOptions) -> Result<(), CLIError> {
     project.scan(&Path::new(&options.path))?;
 
     let frontend = frontend::frontend::Frontend::new();
-    frontend.compile_inline("function sum(a: number, b: number) { return a + b; }".to_string());
+    frontend.compile_inline("function sum() { let a = 5; b = 4; return a + b; }".to_string())?;
 
     Ok(())
 }
