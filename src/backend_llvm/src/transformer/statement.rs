@@ -1,6 +1,4 @@
-use crate::{
-    BackendError,
-};
+use crate::BackendError;
 
 use super::Transformer;
 use swc_ecma_ast as ast;
