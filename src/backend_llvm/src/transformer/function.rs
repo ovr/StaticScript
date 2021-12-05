@@ -1,7 +1,7 @@
 use crate::BackendError;
 
 use super::Transformer;
-use inkwell::{module::Linkage};
+use inkwell::module::Linkage;
 use swc_ecma_ast as ast;
 
 impl<'ctx> Transformer<'ctx> {

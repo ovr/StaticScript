@@ -23,6 +23,8 @@ use transformer::Transformer;
 pub enum BackendError {
     #[error("Backend: {0}")]
     User(String),
+    #[error("Not implemented: {0}")]
+    NotImplemented(String),
 }
 
 mod transformer;
@@ -50,8 +52,8 @@ impl LLVMBackend {
         let transformer = Transformer::new(&context);
         let module = transformer.transform(fn_decl)?;
 
-        module.verify().unwrap();
         println!("Compiled IR {}", module.print_to_string().to_string());
+        module.verify().unwrap();
 
         let pass_manager_builder = PassManagerBuilder::create();
         pass_manager_builder.set_optimization_level(OptimizationLevel::Default);

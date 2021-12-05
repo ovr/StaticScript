@@ -4,12 +4,7 @@ use std::{
     path::Path,
 };
 
-
-
-use crate::{
-    tsconfig::{TSConfiguration},
-    Error,
-};
+use crate::{tsconfig::TSConfiguration, Error};
 
 pub struct ProjectState {
     files: Option<HashMap<String, String>>,

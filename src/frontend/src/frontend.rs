@@ -1,4 +1,4 @@
-use crate::binder::{Binder};
+use crate::binder::Binder;
 
 use crate::project::Project;
 use crate::Error;
@@ -8,7 +8,7 @@ use swc_common::{
     errors::{ColorConfig, Handler},
     FileName, SourceMap,
 };
-use swc_ecma_ast::{Module};
+use swc_ecma_ast::Module;
 use swc_ecma_parser::TsConfig;
 use swc_ecma_parser::{lexer::Lexer, Parser, StringInput, Syntax};
 

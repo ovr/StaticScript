@@ -1,11 +1,11 @@
 #[derive(Debug)]
 pub enum NativeTypeId {
     Float64,
-    Float32,
-    Int64,
-    Uint64,
-    String,
-    Dynamic,
+    // Float32,
+    // Int64,
+    // Uint64,
+    // String,
+    // Dynamic,
 }
 
 #[derive(Debug)]

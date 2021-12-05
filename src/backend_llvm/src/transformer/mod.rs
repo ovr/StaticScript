@@ -48,7 +48,7 @@ impl<'ctx> Transformer<'ctx> {
             println!("{:?}", self.convert_pat_to_identifier(&d.name)?);
 
             if let Some(init) = d.init {
-                self.compile_expr(init);
+                self.compile_expr(init)?;
             };
         }
 
@@ -56,18 +56,29 @@ impl<'ctx> Transformer<'ctx> {
     }
 
     fn compile_expr(&mut self, expr: Box<ast::Expr>) -> Result<CompiledExpression, BackendError> {
-        let reference = match &*expr {
+        let reference = match *expr {
+            ast::Expr::Bin(expr) => self.compile_binary_expr(expr)?,
+            ast::Expr::Assign(expr) => self.compile_assign_expr(expr)?,
             ast::Expr::Lit(lit) => match lit {
                 ast::Lit::Num(n) => {
                     let ptr = self.builder.build_alloca(self.context.f64_type(), "test");
                     let value = self.context.f64_type().const_float(n.value);
                     self.builder.build_store(ptr, value);
 
+                    // let sum = self.builder.build_float_add(value, value, "r");
+                    // self.builder
+                    //     .build_return(Some(&sum.const_to_signed_int(self.context.i64_type())));
+
                     CompiledExpression::new(NativeTypeId::Float64)
                 }
                 _ => todo!(),
             },
-            _ => todo!(),
+            _ => {
+                return Err(BackendError::NotImplemented(format!(
+                    "Unsupported expression {:?}",
+                    expr
+                )));
+            }
         };
 
         Ok(reference)
@@ -75,12 +86,27 @@ impl<'ctx> Transformer<'ctx> {
 
     fn compile_stmt(&mut self, stmt: ast::Stmt) -> Result<(), BackendError> {
         match stmt {
-            ast::Stmt::Decl(ast::Decl::Var(d)) => self.compile_var_decl(d)?,
-            _ => {}
+            ast::Stmt::Decl(ast::Decl::Var(d)) => {
+                self.compile_var_decl(d)?;
+            }
+            ast::Stmt::Expr(ast::ExprStmt { expr, .. }) => {
+                self.compile_expr(expr)?;
+            }
+            ast::Stmt::Return(stmt) => {
+                self.compile_return_statement(stmt)?;
+            }
+            _ => {
+                return Err(BackendError::NotImplemented(format!(
+                    "Unsupported statement {:?}",
+                    stmt
+                )));
+            }
         };
 
         Ok(())
     }
 }
 
+mod binary;
 mod function;
+mod statement;
