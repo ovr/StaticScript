@@ -1,20 +1,9 @@
-#[derive(Debug)]
-pub enum NativeTypeId {
-    Float64,
-    // Float32,
-    // Int64,
-    // Uint64,
-    // String,
-    // Dynamic,
+use inkwell::values::FloatValue;
+
+#[derive(Debug, Clone)]
+pub enum CompiledExpression<'ctx> {
+    Float64(FloatValue<'ctx>),
+    Unknown(),
 }
 
-#[derive(Debug)]
-pub struct CompiledExpression {
-    native_tid: NativeTypeId,
-}
-
-impl CompiledExpression {
-    pub fn new(native_tid: NativeTypeId) -> Self {
-        Self { native_tid }
-    }
-}
+impl<'ctx> CompiledExpression<'ctx> {}

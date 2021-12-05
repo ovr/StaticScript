@@ -6,8 +6,8 @@ use swc_ecma_ast as ast;
 
 impl<'ctx> Transformer<'ctx> {
     pub fn compile_fn(&mut self, stmt: ast::FnDecl) -> Result<(), BackendError> {
-        let i64_type = self.context.i64_type();
-        let fn_type = i64_type.fn_type(&[], false);
+        let f64_type = self.context.f64_type();
+        let fn_type = f64_type.fn_type(&[], false);
         let main_fn = self
             .module
             .add_function("main", fn_type, Some(Linkage::External));
@@ -21,7 +21,11 @@ impl<'ctx> Transformer<'ctx> {
             }
         }
 
-        self.builder.build_return(Some(&i64_type.const_zero()));
+        if let Some(block) = self.builder.get_insert_block() {
+            if block.get_terminator().is_none() {
+                self.builder.build_return(Some(&f64_type.const_zero()));
+            }
+        };
 
         Ok(())
     }
