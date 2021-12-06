@@ -84,8 +84,6 @@ impl<'ctx> Transformer<'ctx> {
     fn compile_var_decl(&mut self, decl: ast::VarDecl) -> Result<(), BackendError> {
         for d in decl.decls {
             let identifier = self.convert_pat_to_identifier(&d.name)?;
-            println!("{:?}", identifier);
-
             if let Some(init) = d.init {
                 let default = self.compile_expr(init)?;
 

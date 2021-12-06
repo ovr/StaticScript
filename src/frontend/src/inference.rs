@@ -42,10 +42,6 @@ impl Inference {
     }
 
     fn inference_function_body(&self, f: &FnDecl) -> Result<Option<TypeKind>, Error> {
-        // Ok(Some(TypeKind::Any))
-
-        // println!("{:?}", f.function.body);
-
         if let Some(block) = &f.function.body {
             for stmt in &block.stmts {
                 match stmt {
