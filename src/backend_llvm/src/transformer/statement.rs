@@ -10,7 +10,10 @@ impl<'ctx> Transformer<'ctx> {
             match &result_value {
                 crate::types::CompiledExpression::Float64(n) => {
                     self.builder.build_return(Some(n));
-                }
+                },
+                crate::types::CompiledExpression::Boolean(n) => {
+                    self.builder.build_return(Some(n));
+                },
                 _ => {
                     return Err(BackendError::NotImplemented(format!(
                         "Unable to return value: {:?}",

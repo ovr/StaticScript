@@ -1,4 +1,4 @@
-use std::{borrow::BorrowMut, cell::RefCell, collections::HashMap, rc::Rc};
+use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 use inkwell as llvm;
 use swc_ecma_ast as ast;
@@ -69,10 +69,6 @@ impl<'ctx> Transformer<'ctx> {
 
     pub fn module(self) -> llvm::module::Module<'ctx> {
         self.module
-    }
-
-    fn declare_var(&mut self) -> Result<(), BackendError> {
-        Ok(())
     }
 
     fn convert_pat_to_identifier(&mut self, pat: &ast::Pat) -> Result<String, BackendError> {

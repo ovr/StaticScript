@@ -52,7 +52,7 @@ impl<'ctx> Transformer<'ctx> {
                 };
 
                 let result = self.builder.build_float_add(l_float, r_float, "result");
-                return Ok(CompiledExpression::Float64(result));
+                Ok(CompiledExpression::Float64(result))
             }
             ast::BinaryOp::EqEq => self.generate_compare(FloatPredicate::OEQ, left, right),
             ast::BinaryOp::NotEq => self.generate_compare(FloatPredicate::ONE, left, right),
@@ -60,14 +60,10 @@ impl<'ctx> Transformer<'ctx> {
             ast::BinaryOp::GtEq => self.generate_compare(FloatPredicate::OGE, left, right),
             ast::BinaryOp::LtEq => self.generate_compare(FloatPredicate::OLE, left, right),
             ast::BinaryOp::Lt => self.generate_compare(FloatPredicate::OLT, left, right),
-            _ => {
-                return Err(BackendError::NotImplemented(format!(
-                    "Operator {}",
-                    expr.op
-                )))
-            }
-        };
-
-        Ok(CompiledExpression::Unknown())
+            _ => Err(BackendError::NotImplemented(format!(
+                "Operator {}",
+                expr.op
+            )))
+        }
     }
 }
