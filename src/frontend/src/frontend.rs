@@ -2,7 +2,7 @@ use crate::binder::Binder;
 
 use crate::project::Project;
 use crate::Error;
-use backend_core::{Session, SessionModule};
+use backend_core::{Session, SessionFile, SessionModule};
 use backend_llvm::LLVMBackend;
 use swc_common::sync::Lrc;
 use swc_common::{
@@ -62,12 +62,19 @@ impl Frontend {
         let binder = Binder::new();
         let binded_module = binder.bind(module);
 
-        let llvm_backend = LLVMBackend::new();
+        let llvm_backend = LLVMBackend::new(backend_core::BackendConfiguration {
+            optimization_level: backend_core::OptimizationLevel::Default,
+            target: backend_core::TargetArch::Current,
+        });
         llvm_backend.init()?;
 
         let session = Session {
             modules: vec![SessionModule {
-                functions: binded_module.functions,
+                name: "main".to_string(),
+                files: vec![SessionFile {
+                    filename: "test".to_string(),
+                    functions: binded_module.functions,
+                }],
             }],
         };
         llvm_backend.compile(session)?;
