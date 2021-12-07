@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+backend_core = { path = "../backend_core" }
 inkwell = { git = "https://github.com/TheDan64/inkwell", branch = "master", features = ["llvm13-0"] }
 anyhow = { version = "1.0", default-features = false }
 thiserror = "1.0"

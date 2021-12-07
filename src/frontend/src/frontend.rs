@@ -2,13 +2,14 @@ use crate::binder::Binder;
 
 use crate::project::Project;
 use crate::Error;
+use backend_core::{Session, SessionModule};
 use backend_llvm::LLVMBackend;
 use swc_common::sync::Lrc;
 use swc_common::{
     errors::{ColorConfig, Handler},
     FileName, SourceMap,
 };
-use swc_ecma_ast::Module;
+use swc_ecma_ast as ast;
 use swc_ecma_parser::TsConfig;
 use swc_ecma_parser::{lexer::Lexer, Parser, StringInput, Syntax};
 
@@ -19,7 +20,7 @@ impl Frontend {
         Self {}
     }
 
-    fn parse(&self, filename: FileName, src: String) -> Module {
+    fn parse(&self, filename: FileName, src: String) -> ast::Module {
         let cm: Lrc<SourceMap> = Default::default();
         let handler = Handler::with_tty_emitter(ColorConfig::Auto, true, false, Some(cm.clone()));
 
@@ -62,10 +63,14 @@ impl Frontend {
         let binded_module = binder.bind(module);
 
         let llvm_backend = LLVMBackend::new();
+        llvm_backend.init()?;
 
-        for fun in binded_module.functions {
-            llvm_backend.compile(fun.node)?;
-        }
+        let session = Session {
+            modules: vec![SessionModule {
+                functions: binded_module.functions,
+            }],
+        };
+        llvm_backend.compile(session)?;
 
         Ok(())
     }

@@ -10,17 +10,12 @@ pub enum TypeKind {
     Undefined,
 }
 
-pub struct BindedFn {
-    pub node: FnDecl,
-    pub return_type: Option<TypeKind>,
-}
-
 pub struct Binder {
-    functions: Vec<BindedFn>,
+    functions: Vec<FnDecl>,
 }
 
 pub struct BindedModule {
-    pub(crate) functions: Vec<BindedFn>,
+    pub(crate) functions: Vec<FnDecl>,
 }
 
 impl Binder {
@@ -29,10 +24,7 @@ impl Binder {
     }
 
     fn bind_function_declaration(&mut self, node: FnDecl) {
-        self.functions.push(BindedFn {
-            node,
-            return_type: None,
-        });
+        self.functions.push(node);
     }
 
     fn bind_statement_declaration(&mut self, decl: Decl) {

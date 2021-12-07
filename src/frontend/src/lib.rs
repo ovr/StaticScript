@@ -17,6 +17,5 @@ impl Error {}
 
 pub mod binder;
 pub mod frontend;
-pub mod inference;
 pub mod project;
 pub mod tsconfig;

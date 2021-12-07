@@ -61,13 +61,14 @@ impl<'ctx> Transformer<'ctx> {
     }
 
     /// Transform module
-    pub fn transform(
-        mut self,
-        fn_declr: ast::FnDecl,
-    ) -> Result<llvm::module::Module<'ctx>, BackendError> {
+    pub fn transform_fn(&mut self, fn_declr: ast::FnDecl) -> Result<(), BackendError> {
         self.compile_fn(fn_declr)?;
 
-        Ok(self.module)
+        Ok(())
+    }
+
+    pub fn module(self) -> llvm::module::Module<'ctx> {
+        self.module
     }
 
     fn declare_var(&mut self) -> Result<(), BackendError> {

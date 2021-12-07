@@ -76,10 +76,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cdb031dd78e28731d87d56cc8ffef4a8f36ca26c38fe2de700543e627f8a464a"
 
 [[package]]
+name = "backend_core"
+version = "0.1.0"
+dependencies = [
+ "swc_common",
+ "swc_ecma_ast 0.58.0",
+ "swc_ecma_parser",
+]
+
+[[package]]
 name = "backend_llvm"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "backend_core",
  "inkwell",
  "swc_ecma_ast 0.58.0",
  "tempfile",
@@ -231,6 +241,7 @@ name = "frontend"
 version = "0.0.1"
 dependencies = [
  "anyhow",
+ "backend_core",
  "backend_llvm",
  "serde",
  "serde_json",
