@@ -71,7 +71,10 @@ impl LLVMBackend {
         Ok(module)
     }
 
-    pub fn inject_main<'ctx>(&'ctx self, module: Module<'ctx>) -> std::result::Result<Module<'ctx>, BackendError> {
+    pub fn inject_main<'ctx>(
+        &'ctx self,
+        module: Module<'ctx>,
+    ) -> std::result::Result<Module<'ctx>, BackendError> {
         let builder = self.context.create_builder();
 
         let i64_type = self.context.i64_type();

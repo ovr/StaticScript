@@ -63,7 +63,7 @@ impl<'ctx> Transformer<'ctx> {
             _ => Err(BackendError::NotImplemented(format!(
                 "Operator {}",
                 expr.op
-            )))
+            ))),
         }
     }
 }
