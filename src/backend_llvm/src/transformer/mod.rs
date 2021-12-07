@@ -1,6 +1,7 @@
 use std::rc::Rc;
 
 use inkwell as llvm;
+use llvm::debug_info::{DICompileUnit, DWARFEmissionKind, DWARFSourceLanguage, DebugInfoBuilder};
 use swc_ecma_ast as ast;
 
 use crate::{types::CompiledExpression, BackendError};
@@ -15,17 +16,42 @@ pub struct Transformer<'ctx> {
     context: &'ctx llvm::context::Context,
     module: llvm::module::Module<'ctx>,
     builder: llvm::builder::Builder<'ctx>,
+    // LLVM Debug
+    di_builder: DebugInfoBuilder<'ctx>,
+    di_compile_unit: DICompileUnit<'ctx>,
 }
 
 impl<'ctx> Transformer<'ctx> {
     pub fn new(context: &'ctx llvm::context::Context) -> Self {
+        let module = context.create_module("module");
+        let (di_builder, di_compile_unit) = module.create_debug_info_builder(
+            true,
+            DWARFSourceLanguage::C,
+            "filename",
+            "dirname",
+            "staticscript",
+            true,
+            "",
+            0,
+            "",
+            DWARFEmissionKind::Full,
+            0,
+            false,
+            false,
+            "",
+            "",
+        );
+
         Transformer {
             // our
             scope_stack: ScopeStack::new(),
-            // llvm
+            // LLVM Context
             context,
-            module: context.create_module("module"),
+            module,
             builder: context.create_builder(),
+            // LLVM Debug
+            di_builder,
+            di_compile_unit,
         }
     }
 
@@ -39,6 +65,8 @@ impl<'ctx> Transformer<'ctx> {
     }
 
     pub fn module(self) -> llvm::module::Module<'ctx> {
+        self.di_builder.finalize();
+
         self.module
     }
 
