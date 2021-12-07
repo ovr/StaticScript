@@ -1,9 +1,10 @@
 [workspace]
 resolver = "2"
 members = [
-    "src/backend_core",
+    "src/backend_llvm",
     "src/backend_llvm",
     "src/frontend",
     "src/cli",
+    "src/playground",
 ]
 default-run = "src/cli"
