@@ -10,3 +10,4 @@ anyhow = { version = "1.0", default-features = false }
 thiserror = "1.0"
 tempfile = "3"
 swc_ecma_ast = { version = "=0.58" }
+mun_lld = { version = "=110.0.0" }

@@ -3,7 +3,6 @@ use inkwell::{
     context::Context,
     module::{Linkage, Module},
     passes::{PassManager, PassManagerBuilder},
-    support::LLVMString,
     targets::{CodeModel, FileType, InitializationConfig, RelocMode, Target, TargetMachine},
     OptimizationLevel,
 };
@@ -12,20 +11,23 @@ use std::{env, fs, io, path::Path};
 use thiserror::Error;
 use transformer::Transformer;
 
+use crate::linker::{create_linker};
+
 #[derive(Error, Debug)]
 pub enum BackendError {
     #[error("Backend: {0}")]
     User(String),
     #[error("Not implemented: {0}")]
     NotImplemented(String),
-    #[error("LLVM: {0}")]
-    LLVM(String),
-    #[error("LLVM: {0}")]
-    LLVMInternal(LLVMString),
+    #[error("LLVM error: {0}")]
+    LLVMError(String),
+    #[error("Link error: {0}")]
+    LinkError(String),
     #[error("IO: {0}")]
     IO(#[from] io::Error),
 }
 
+mod linker;
 mod transformer;
 mod types;
 
@@ -112,12 +114,12 @@ impl LLVMBackend {
                 reloc,
                 model,
             )
-            .ok_or(BackendError::LLVM(format!(
+            .ok_or(BackendError::LLVMError(format!(
                 "Unable to init target machine: {}",
                 triple
             )))?;
 
-        let mut link = vec![];
+        let mut object_files = vec![];
 
         for session_module in session.modules {
             let pfm = env::current_dir()?.join("output").join(session_module.name);
@@ -134,15 +136,23 @@ impl LLVMBackend {
                 let module = self.inject_main(transformer.module())?;
                 let module = self.compile_module(module)?;
 
-                let path = path_for_module.join(session_file.filename.clone() + ".asm");
+                let path = path_for_module.join(session_file.filename.clone() + ".o");
 
                 target_machine
                     .write_to_file(&module, FileType::Object, &path)
-                    .map_err(BackendError::LLVMInternal)?;
+                    .map_err(|err| BackendError::LLVMError(err.to_string()))?;
 
-                link.push(module);
+                object_files.push(path);
             }
         }
+
+        let mut linker = create_linker(&target_machine);
+
+        for object_file in object_files {
+            linker.add_object(&object_file)?;
+        }
+
+        linker.finalize(&env::current_dir()?.join("output").join("program"))?;
 
         Ok(())
     }
