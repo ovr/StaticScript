@@ -11,7 +11,7 @@ use std::{env, fs, io, path::Path};
 use thiserror::Error;
 use transformer::Transformer;
 
-use crate::linker::{create_linker};
+use crate::linker::create_linker;
 
 #[derive(Error, Debug)]
 pub enum BackendError {
@@ -89,6 +89,14 @@ impl LLVMBackend {
         let block = self.context.append_basic_block(main_fn, "entry");
 
         builder.position_at_end(block);
+
+        let fn_type = self.context.void_type().fn_type(&[], false);
+        let runtime_fn =
+            module.add_function("__ss_init_runtime/0", fn_type, Some(Linkage::External));
+        builder
+            .build_call(runtime_fn, &[], "runtime_init")
+            .try_as_basic_value();
+
         builder.build_return(Some(&i64_type.const_int(0, false)));
 
         Ok(module)
@@ -150,6 +158,12 @@ impl LLVMBackend {
 
         for object_file in object_files {
             linker.add_object(&object_file)?;
+        }
+
+        let libraries = vec!["libstaticscript_stdlib.a", "libstaticscript_runtime.a"];
+        for library in libraries {
+            let library_path = format!("target/debug/{}", library);
+            linker.add_static_library(Path::new(&library_path))?;
         }
 
         linker.finalize(&env::current_dir()?.join("output").join("program"))?;

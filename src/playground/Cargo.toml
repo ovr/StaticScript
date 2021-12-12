@@ -8,13 +8,10 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 wasm-bindgen = "0.2.45"
-
-[dependencies.web-sys]
-version = "0.3.22"
-features = ["console"]
+web-sys = { version = "0.3.55", features = ["console"] }
 
 [target."cfg(debug_assertions)".dependencies]
 console_error_panic_hook = "0.1.5"
 
 [dev-dependencies]
-js-sys = "0.3.22"
+js-sys = "0.3.55"

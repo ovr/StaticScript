@@ -6,14 +6,69 @@ use crate::BackendError;
 
 pub trait Linker {
     fn add_object(&mut self, path: &Path) -> Result<(), BackendError>;
+    fn add_static_library(&mut self, path: &Path) -> Result<(), BackendError>;
     fn finalize(&mut self, path: &Path) -> Result<(), BackendError>;
 }
 
 pub fn create_linker(target_machine: &TargetMachine) -> Box<dyn Linker> {
     let target = target_machine.get_target();
     match target.get_name().to_str().unwrap() {
-        "aarch64" => Box::new(PlatformLd64Linker::new()),
+        "aarch64" => Box::new(CCLinker::new()),
         _ => Box::new(StaticLd64Linker::new()),
+    }
+}
+
+#[derive(Debug)]
+pub struct CCLinker {
+    command: Command,
+}
+
+impl CCLinker {
+    pub fn new() -> Self {
+        let mut command = Command::new("cc");
+        // command.args(["-arch", "x86_64"]);
+
+        CCLinker { command }
+    }
+}
+
+impl Linker for CCLinker {
+    fn add_object(&mut self, path: &Path) -> Result<(), BackendError> {
+        let path_str = path
+            .to_str()
+            .ok_or_else(|| BackendError::LinkError(path.to_string_lossy().to_string()))?
+            .to_owned();
+        self.command.arg(path_str);
+        Ok(())
+    }
+
+    fn add_static_library(&mut self, path: &Path) -> Result<(), BackendError> {
+        let path_str = path
+            .to_str()
+            .ok_or_else(|| BackendError::LinkError(path.to_string_lossy().to_string()))?
+            .to_owned();
+        self.command.arg(path_str);
+        Ok(())
+    }
+
+    fn finalize(&mut self, path: &Path) -> Result<(), BackendError> {
+        let path_str = path
+            .to_str()
+            .ok_or_else(|| BackendError::LinkError(path.to_string_lossy().to_string()))?;
+
+        // Specify output path
+        self.command.args(["-o", path_str]);
+
+        let output = self
+            .command
+            .output()
+            .map_err(|e| BackendError::LinkError(e.to_string()))?;
+
+        if !output.status.success() {
+            Err(BackendError::LinkError(format!("{:?}", output)))
+        } else {
+            Ok(())
+        }
     }
 }
 
@@ -42,6 +97,15 @@ impl Linker for PlatformLd64Linker {
         Ok(())
     }
 
+    fn add_static_library(&mut self, path: &Path) -> Result<(), BackendError> {
+        let path_str = path
+            .to_str()
+            .ok_or_else(|| BackendError::LinkError(path.to_string_lossy().to_string()))?
+            .to_owned();
+
+        Ok(())
+    }
+
     fn finalize(&mut self, path: &Path) -> Result<(), BackendError> {
         let path_str = path
             .to_str()
@@ -50,11 +114,16 @@ impl Linker for PlatformLd64Linker {
         // Specify output path
         self.command.args(["-o", path_str]);
 
-        self.command
+        let output = self
+            .command
             .output()
             .map_err(|e| BackendError::LinkError(e.to_string()))?;
 
-        Ok(())
+        if !output.status.success() {
+            Err(BackendError::LinkError(format!("{:?}", output)))
+        } else {
+            Ok(())
+        }
     }
 }
 
@@ -81,6 +150,18 @@ impl Linker for StaticLd64Linker {
             .ok_or_else(|| BackendError::LinkError(path.to_string_lossy().to_string()))?
             .to_owned();
         self.args.push(path_str);
+        Ok(())
+    }
+
+    fn add_static_library(&mut self, path: &Path) -> Result<(), BackendError> {
+        let path_str = path
+            .to_str()
+            .ok_or_else(|| BackendError::LinkError(path.to_string_lossy().to_string()))?
+            .to_owned();
+
+        self.args.push("-l".to_owned());
+        self.args.push(path_str);
+
         Ok(())
     }
 
