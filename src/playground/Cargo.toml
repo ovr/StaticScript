@@ -1,0 +1,17 @@
+[package]
+name = "playground"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+wasm-bindgen = "0.2.45"
+web-sys = { version = "0.3.55", features = ["console"] }
+
+[target."cfg(debug_assertions)".dependencies]
+console_error_panic_hook = "0.1.5"
+
+[dev-dependencies]
+js-sys = "0.3.55"

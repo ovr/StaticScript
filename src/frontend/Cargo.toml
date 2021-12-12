@@ -1,0 +1,18 @@
+[package]
+name = "frontend"
+version = "0.0.1"
+edition = "2021"
+
+[dependencies]
+backend_llvm = { path = "../backend_llvm" }
+backend_core = { path = "../backend_core" }
+swc_ecma_parser = { version = "=0.78.5", features = ["typescript"] }
+swc_ecma_ast = { version = "=0.58" }
+swc_common = { version = "0.14.0", features = ["tty-emitter"] }
+swc_ecma_dep_graph = { version = "0.46.0" }
+
+anyhow = { version = "1.0", default-features = false }
+thiserror = "1.0"
+serde = { version = "*", features = ["derive"] }
+serde_json = "*"
+serde_jsonrc = "*"
